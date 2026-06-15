@@ -294,11 +294,11 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 
 ##  Acknowledgements
 
-RCT-Reviewer is a modernized version of the original RobotReviewer. I extend my sincere gratitude to the original authors: **Iain J. Marshall, Joël Kuiper, Edward Banner, and Byron C. Wallace** for their foundational work in biomedical NLP and for releasing the project as open-source.
+RCT-Reviewer is a modernized version of the original [RobotReviewer](https://github.com/ijmarshall/robotreviewer). I extend my sincere gratitude to the original authors: **Iain J. Marshall, Joël Kuiper, Edward Banner, and Byron C. Wallace** for their foundational work in biomedical NLP and for releasing the project as open-source.
 
 I would also like to thank all contributors and collaborators involved in the RobotReviewer ecosystem, including the Cochrane Crowd and the research teams at UPenn, Northeastern, and UCL, whose efforts in data collection and model development made this tool possible.
 
-Additionally, I acknowledge the use of **RikaiCode (Code Repository Context Generator)** [https://rikaicode.github.io], which was invaluable for analyzing and understanding the complex logic of the original RobotReviewer codebase during the modernization process.
+Additionally, I acknowledge the use of [RikaiCode](https://rikaicode.github.io) (Code Repository Context Generator), which was invaluable for analyzing and understanding the complex logic of the original RobotReviewer codebase during the modernization process.
 
 
 ---
