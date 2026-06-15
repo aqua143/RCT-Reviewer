@@ -15,7 +15,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 import streamlit as st
 import logging
 import base64
-import streamlit.components.v1 as components
 import pandas as pd
 import fitz
 import io
@@ -104,7 +103,7 @@ def download_models():
         return True
 
     msg = st.empty()
-    msg.info("⬇️ Models not found locally. Downloading from Hugging Face Hub (One-time setup)...")
+    msg.info(" Models not found locally. Downloading from Hugging Face Hub (One-time setup)...")
 
     from huggingface_hub import snapshot_download
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
@@ -120,11 +119,11 @@ def download_models():
                 local_dir=MODELS_DIR,
                 max_workers=1
             )
-            msg.success(f"✅ Models downloaded successfully to: {MODELS_DIR}")
+            msg.success(f"Models downloaded successfully to: {MODELS_DIR}! Please do not clear this Streamlit's cache.")
             return True
 
         except ImportError:
-            msg.error("❌ `huggingface_hub` library not found. Please add it to requirements.txt.")
+            msg.error(" `huggingface_hub` library not found. Please add it to requirements.txt.")
             return False
         except Exception as e:
             retry_count += 1
@@ -132,7 +131,7 @@ def download_models():
                 msg.warning(f"⚠️ Download attempt {retry_count} failed: {str(e)[:100]}... Retrying in 5s...")
                 time.sleep(5)
             else:
-                msg.error(f"❌ Failed to download models after {max_retries} attempts: {e}")
+                msg.error(f" Failed to download models after {max_retries} attempts: {e}")
                 return False
 
 
@@ -177,6 +176,30 @@ BIAS_COLORS = {
     "Incomplete outcome data": (0.8, 0.2, 0.2),
     "Selective reporting": (0.5, 0.0, 0.0),
 }
+
+
+def render_evidence_item(number, text):
+    """Render a single evidence item, detecting and formatting tables."""
+    lines = text.strip().split('\n')
+    non_empty_lines = [l for l in lines if l.strip()]
+
+    is_pipe_table = len(non_empty_lines) >= 2 and all('|' in line for line in non_empty_lines)
+    is_tab_table = len(non_empty_lines) >= 2 and all('\t' in line for line in non_empty_lines)
+
+    if is_pipe_table or is_tab_table:
+        st.markdown(f"**{number}.**")
+        if is_tab_table:
+            md_lines = []
+            for i, line in enumerate(non_empty_lines):
+                cells = [c.strip() for c in line.split('\t')]
+                md_lines.append('| ' + ' | '.join(cells) + ' |')
+                if i == 0:
+                    md_lines.append('| ' + ' | '.join(['---'] * len(cells)) + ' |')
+            st.markdown('\n'.join(md_lines))
+        else:
+            st.markdown(text)
+    else:
+        st.info(f"{number}. {text}")
 
 
 def create_bias_highlighted_pdf(pdf_bytes, annotations):
@@ -397,7 +420,7 @@ def js_escape(text):
 def main():
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        st.image("assets/banner.svg", use_container_width=True)
+        st.image("assets/banner.svg", width=730)
 
     st.markdown("---")
 
@@ -428,9 +451,9 @@ def main():
         | **Data Models** | MultiDict | Pydantic |
         | **ML Core** | SVM / CNN | Same Weights (SVM prioritized) |
         | **Underlying ML Research** | Original ML models trained on 12,808 RCT PDFs | Preserves the same trained ML models and weights |
-        | **Risk of Bias Accuracy** | ~71.0% agreement accuracy vs expert consensus | Same expected predictive accuracy because the same SVM weights are used |
-        | **Supporting Text Precision** | ~87% precision for rationale extraction | Same extraction models retained |
-        | **Supporting Text Recall** | ~90% recall | Same extraction models retained |
+        | **Risk of Bias Accuracy** | ~71.0% agreement accuracy vs expert consensus | ~71.0% agreement accuracy vs expert consensus (Same SVM weights) |
+        | **Supporting Text Precision** | ~87% precision for rationale extraction | ~87% precision for rationale extraction (Same extraction models) |
+        | **Supporting Text Recall** | ~90% recall | ~90% recall (Same extraction models) |
         | **Model Storage** | Pickle / HDF5 / NPZ | Joblib / NPZ / legacy compatibility modes |
         | **Expected Accuracy Difference After CNN Removal** | Baseline reference | Estimated negligible reduction (~0–2%) |
         | **Interface** | Flask + React | Streamlit (Pure Python) |
@@ -459,12 +482,6 @@ def main():
     st.markdown("---")
     st.markdown("## Analysis Tool")
 
-    with st.expander("⚙️ Settings"):
-        show_evidence = st.checkbox("Show Evidence Sentences", value=True)
-        top_k_sentences = st.slider("Evidence Sentences per Domain", 1, 5, 3)
-
-    st.info(f"**Running in Cloud Mode:** Models are loaded from Hugging Face Hub.\nCache location: `{MODELS_DIR}`")
-
     uploaded_files = st.file_uploader("Upload Clinical Trial PDF", type="pdf", accept_multiple_files=True)
 
     if uploaded_files:
@@ -473,23 +490,37 @@ def main():
 
         if st.button("Analyze Document", type="primary"):
             results = []
-            progress = st.progress(0)
+            progress = st.progress(0, text="Initializing...")
             status = st.empty()
 
             file_to_process = uploaded_files[0]
             
             status.markdown(f"**Processing: {file_to_process.name}**")
+            progress.progress(0.1, text="Reading PDF...")
             try:
                 pdf_bytes = file_to_process.getvalue()
                 parsed_data = parser.parse(pdf_bytes)
 
+                progress.progress(0.3, text="PDF parsed. Checking content...")
+
                 if not parsed_data['sentences']:
                     st.error(f"Could not extract text from {file_to_process.name}")
+                    progress.progress(1.0, text="Failed - no text extracted")
+                    status.markdown(" Analysis failed: could not extract text.")
                 else:
-                    with st.spinner("Running ML analysis..."):
-                        rct_res = models['rct'].predict(parsed_data['title'], parsed_data['abstract'])
-                        pico_res = models['pico'].annotate(parsed_data['sentences'])
-                        bias_res = models['bias'].annotate(parsed_data['sentences'], parsed_data['text'])
+                    progress.progress(0.4, text="Running RCT classification...")
+                    status.markdown(f"**Running ML analysis on {file_to_process.name}...**")
+
+                    rct_res = models['rct'].predict(parsed_data['title'], parsed_data['abstract'])
+
+                    progress.progress(0.6, text="Running PICO extraction...")
+                    pico_res = models['pico'].annotate(parsed_data['sentences'])
+
+                    progress.progress(0.8, text="Running Risk of Bias assessment...")
+                    bias_res = models['bias'].annotate(parsed_data['sentences'], parsed_data['text'])
+
+                    progress.progress(1.0)
+                    status.markdown(" Analysis complete!")
 
                     result = {
                         "filename": file_to_process.name, "pdf_bytes": pdf_bytes,
@@ -497,28 +528,16 @@ def main():
                     }
                     results.append(result)
             except Exception as e:
+                progress.progress(1.0, text="Failed with error")
+                status.markdown(f"❌ Analysis failed: {str(e)}")
                 st.error(f"Error processing {file_to_process.name}: {str(e)}")
 
-            progress.progress(1) 
-
-            status.markdown(" Analysis complete!")
             st.session_state['results'] = results
 
     if 'results' in st.session_state and st.session_state['results']:
         results = st.session_state['results']
 
-        st.markdown("---")
-        st.markdown("## Analysis Summary")
 
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Documents", len(results))
-        with col2:
-            st.metric("Identified RCTs", sum(1 for r in results if r['rct']['is_rct']))
-        with col3:
-            st.metric("Low Risk Assessments", sum(1 for r in results if any(b['judgement'] == 'low' for b in r['bias'])))
-        with col4:
-            st.metric("Documents with Issues", len(results) - sum(1 for r in results if r['rct']['is_rct']))
 
        
 
@@ -530,19 +549,24 @@ def main():
             rct = result['rct']
             rct_col1, rct_col2, rct_col3 = st.columns(3)
             with rct_col1:
-                st.metric("Is RCT?", "✅ Yes" if rct['is_rct'] else "❌ No", delta=f"Score: {rct['score']:.3f}")
+                st.metric("Is uploaded file an RCT?", "Yes" if rct['is_rct'] else "No", delta=f"Score: {rct['score']:.3f}")
             with rct_col2:
                 st.metric("Probability", f"{rct['probability']:.1%}")
             with rct_col3:
                 st.metric("Model", rct.get('model', 'SVM'))
 
+            st.markdown("---")
             st.markdown("###  Risk of Bias Assessment")
             bias = result.get('bias', [])
 
             if bias:
                 bias_data = []
                 for b in bias:
-                    judgement = b.get('judgement', 'N/A')
+                    raw_judgement = b.get('judgement', 'N/A')
+                    if raw_judgement == 'low':
+                        judgement = 'Low'
+                    else:
+                        judgement = 'High/Unclear'
                     domain = b.get('domain', '')
                     color = BIAS_COLORS.get(domain, (1.0, 0.3, 0.3))
                     hex_color = '#%02x%02x%02x' % (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
@@ -556,7 +580,7 @@ def main():
                 df_bias = pd.DataFrame(bias_data)
 
                 def color_judgement(val):
-                    if val == 'low':
+                    if val == 'Low':
                         return 'background-color: #d4edda; color: #155724; font-weight: bold'
                     else:
                         return 'background-color: #f8d7da; color: #721c24; font-weight: bold'
@@ -568,41 +592,45 @@ def main():
 
                 st.dataframe(styled_df, width="stretch", hide_index=True)
 
-                if show_evidence:
-                    st.markdown("#### Evidence Sentences")
-                    for b in bias:
-                        domain = b.get('domain', '')
-                        color = BIAS_COLORS.get(domain, (1.0, 0.3, 0.3))
-                        hex_color = '#%02x%02x%02x' % (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
-                        icon = "🟢" if b.get('judgement') == 'low' else "🔴"
+                st.markdown("#### Risk of Bias Assessment Evidence")
+                for b in bias:
+                    domain = b.get('domain', '')
+                    color = BIAS_COLORS.get(domain, (1.0, 0.3, 0.3))
+                    hex_color = '#%02x%02x%02x' % (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+                    icon = "🟢" if b.get('judgement') == 'low' else "🔴"
+                    raw_j = b.get('judgement', 'N/A')
+                    display_j = 'Low' if raw_j == 'low' else 'High/Unclear'
 
-                        with st.expander(f"{icon} {domain}"):
-                            ev_col1, ev_col2 = st.columns([1, 2])
-                            with ev_col1:
-                                st.markdown(f"**Judgement:** `{b.get('judgement', 'N/A')}`")
-                            with ev_col2:
-                                fg_color = 'white' if sum(color) < 1.5 else 'black'
-                                st.markdown(f"**Color:** <span style='background-color:{hex_color};padding:2px 8px;border-radius:3px;color:{fg_color}'>{hex_color}</span>", unsafe_allow_html=True)
+                    with st.expander(f"{icon} {domain}"):
+                        ev_col1, ev_col2 = st.columns([1, 2])
+                        with ev_col1:
+                            st.markdown(f"**Judgement:** `{display_j}`")
+                        with ev_col2:
+                            fg_color = 'white' if sum(color) < 1.5 else 'black'
+                            st.markdown(f"**Color:** <span style='background-color:{hex_color};padding:2px 8px;border-radius:3px;color:{fg_color}'>{hex_color}</span>", unsafe_allow_html=True)
 
-                            st.markdown("**Evidence:**")
-                            if b.get('text'):
-                                for i, evidence in enumerate(b['text'][:top_k_sentences], 1):
-                                    st.info(f"{i}. {evidence}")
-                            else:
-                                st.caption("_No evidence sentences found_")
+                        st.markdown(f"These are the sentences extracted from the uploaded RCT which depict particular **{domain}**.")
+                        st.markdown("**Evidence:**")
+                        if b.get('text'):
+                            for i, evidence in enumerate(b['text'], 1):
+                                render_evidence_item(i, evidence)
+                        else:
+                            st.caption("_No evidence sentences found_")
             else:
                 st.caption("_No Risk of Bias assessment could be generated._")
 
+            st.markdown("---")
             st.markdown("###  PICO Extraction")
             pico = result.get('pico', [])
             pico_icons = {"Population": "P - ", "Intervention": "I - ", "Outcomes": "O - "}
 
             for pico_domain in ["Population", "Intervention", "Outcomes"]:
-                with st.expander(f"{pico_icons.get(pico_domain, '📄')} {pico_domain}"):
+                with st.expander(f"{pico_icons.get(pico_domain)} {pico_domain}"):
+                    st.markdown(f"These are the sentences extracted from the uploaded RCT which depict particular **{pico_domain}**.")
                     domain_data = next((p for p in pico if p['domain'] == pico_domain), None)
                     if domain_data and domain_data.get('text'):
-                        for i, sent in enumerate(domain_data['text'][:top_k_sentences], 1):
-                            st.info(f"{i}. {sent}")
+                        for i, sent in enumerate(domain_data['text'], 1):
+                            render_evidence_item(i, sent)
                     else:
                         st.caption("_No elements extracted_")
 
@@ -700,7 +728,7 @@ ER  -"""
     rct_bib_encoded = base64.b64encode(rct_bib.encode()).decode()
 
     escaped_rct_citation = rct_cite_text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    components.html(f"""
+    st.html(f"""
     <style>
         .cit-btn {{
             background-color: #5370d6;
@@ -711,15 +739,12 @@ ER  -"""
             border-radius: 5px;
             border: none;
             cursor: pointer;
-
-    
             text-decoration: none;
             display: inline-block;
         }}
         .cit-btn:hover {{
             background-color: #4157a5;
             transform: translateY(-2px);
-            
         }}
         .cit-btn-row {{
             display: flex;
@@ -747,7 +772,7 @@ ER  -"""
             }});
         }});
     </script>
-    """, height=50)
+    """)
 
     
 
@@ -779,7 +804,7 @@ ER  -"""
     robot_bib_encoded = base64.b64encode(robot_bib.encode()).decode()
 
     escaped_robot_citation = robot_cite_text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    components.html(f"""
+    st.html(f"""
     <style>
         .cit-btn {{
             background-color: #5370d6;
@@ -790,15 +815,12 @@ ER  -"""
             border-radius: 5px;
             border: none;
             cursor: pointer;
-
-    
             text-decoration: none;
             display: inline-block;
         }}
         .cit-btn:hover {{
             background-color: #4157a5;
             transform: translateY(-2px);
-            
         }}
         .cit-btn-row {{
             display: flex;
@@ -826,7 +848,7 @@ ER  -"""
             }});
         }});
     </script>
-    """, height=50)
+    """)
 
     st.markdown("---")
     st.markdown("##  Acknowledgements")
