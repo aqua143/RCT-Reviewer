@@ -298,7 +298,8 @@ RCT-Reviewer is a modernized version of the original [RobotReviewer](https://git
 
 I would also like to thank all contributors and collaborators involved in the RobotReviewer ecosystem, including the Cochrane Crowd and the research teams at UPenn, Northeastern, and UCL, whose efforts in data collection and model development made this tool possible.
 
-Additionally, I acknowledge the use of [RikaiCode](https://rikaicode.github.io) (Code Repository Context Generator), which was invaluable for analyzing and understanding the complex logic of the original RobotReviewer codebase during the modernization process.
+Additionally, I would like to acknowledge the use of [RikaiCode](https://rikaicode.github.io) (Code Repository Context Generator) and [GLM-4.7](https://huggingface.co/zai-org/GLM-4.7), which were invaluable in analyzing and understanding the complex logic of the original [RobotReviewer](https://github.com/ijmarshall/robotreviewer) codebase, as well as assisting in the development and modernization of RobotReviewer.
+
 
 
 ---
