@@ -115,6 +115,7 @@ PROJECT ARCHITECTURE
 
 ## 🔄 Differences from Original RobotReviewer
 
+
 | Feature | Original RobotReviewer (2017) | RCT-Reviewer |
 | :--- | :--- | :--- |
 | **Interface** | Flask + React | **Streamlit** (Pure Python) |
@@ -123,6 +124,15 @@ PROJECT ARCHITECTURE
 | **Data Models** | MultiDict | **Pydantic** |
 | **Deployment** | Docker Compose | **Local Streamlit Run** |
 | **ML Core** | SVM / CNN | **Same Weights** (SVM prioritized) |
+| **Expected Accuracy Difference After CNN Removal** | Baseline reference | Estimated negligible reduction (~0–2%) |
+| **Core Purpose** | Automated Risk of Bias assessment for RCTs | Modernized standalone implementation for automated Risk of Bias assessment |
+| **Underlying ML Research** | Original ML models trained on 12,808 RCT PDFs | Preserves the same trained ML models and weights |
+| **Risk of Bias Accuracy** | ~71.0% agreement accuracy vs expert consensus | Same expected predictive accuracy because the same SVM weights are used |
+| **Supporting Text Precision** | ~87% precision for rationale extraction | Same extraction models retained |
+| **Supporting Text Recall** | ~90% recall | Same extraction models retained |
+| **Model Storage** | Pickle / HDF5 / NPZ | Joblib / NPZ / legacy compatibility modes |
+| **Compatibility** | Compatible with Python 3.6 | Modernized for Python 3.12 |
+
 
 ### Note on SVM vs CNN
 This project uses a **Linear SVM-only pipeline** instead of the original SVM + CNN ensemble. CNN models were removed because they depend on TensorFlow/Keras `.h5` files which break on Python 3.11–3.12. The SVM model already contains the full predictive signal with negligible accuracy loss (~0–2%), is faster, and ensures reproducibility across all systems.
@@ -190,7 +200,7 @@ python -m spacy download en_core_web_sm
 Choose one of the following methods to run the app.
 
 <details>
-<summary><b>Mode 1: app.py (Recommended Local)</b></summary>
+<summary><b>Mode 1: app.py (.joblib Local)</b></summary>
 
 This version uses compressed `.joblib` and `.npz` files. It requires downloading model weights via Git LFS.
 
@@ -202,12 +212,12 @@ git lfs pull
 
 **2. Run:**
 ```bash
-streamlit run rct_reviewer/app.py
+python -m streamlit run rct_reviewer/app.py
 ```
 </details>
 
 <details>
-<summary><b>Mode 2: app1.py (Legacy Local)</b></summary>
+<summary><b>Mode 2: app1.py (Legacy .pickle Local)</b></summary>
 
 This version uses the original `.pickle`, `.pck`, and `.npz` files. It also requires Git LFS.
 
@@ -219,18 +229,18 @@ git lfs pull
 
 **2. Run:**
 ```bash
-streamlit run rct_reviewer/app1.py
+python -m streamlit run rct_reviewer/app1.py
 ```
 </details>
 
 <details>
-<summary><b>Mode 3: app2.py (Hugging Face Hub)</b></summary>
+<summary><b>Mode 3: app2.py (Default mode / Hugging Face Hub)</b></summary>
 
 This version fetches models directly from the Hugging Face Hub. **You do not need to run `git lfs pull`**.
 
 **1. Run:**
 ```bash
-streamlit run rct_reviewer/app2.py
+python -m streamlit run rct_reviewer/app2.py
 ```
 *Note: This requires an active internet connection to fetch models from `Aurumz/RCT-Reviewer` on Hugging Face.*
 </details>

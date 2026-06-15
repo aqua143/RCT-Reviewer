@@ -1,6 +1,10 @@
 [theme]
-primaryColor = "#7f7f7f"
-backgroundColor = "#161616"
-secondaryBackgroundColor = "#262626"
-textColor = "#ECECEC"
-base = "dark"
+primaryColor = "#5370d6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#e7ebf1"
+textColor = "#313440"
+base = "light"
+
+
+[server]
+maxUploadSize = 60
