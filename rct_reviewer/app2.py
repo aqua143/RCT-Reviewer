@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import streamlit as st
+import streamlit.components.v1 as components
 import logging
 import base64
 import pandas as pd
@@ -475,7 +476,7 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
                     box_rect = fitz.Rect(final_x - 1, sup_y - box_h, final_x + box_w, sup_y)
                     
                     page.draw_rect(box_rect, color=None, fill=color, width=0) 
-                    page.insert_text(fitz.Point(final_x + 2, sup_y - 2), letter, fontsize=10, color=(0, 0, 0), fontname="helv") # Black Text
+                    page.insert_text(fitz.Point(final_x + 2, sup_y - 2), letter, fontsize=10, color=(0, 0, 0), fontname="helv") 
                     
                     placed_superscripts.append(box_rect)
 
@@ -557,7 +558,7 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
                     box_rect = fitz.Rect(final_x - 1, sup_y - box_h, final_x + box_w, sup_y)
                     
                     page.draw_rect(box_rect, color=None, fill=color, width=0) 
-                    page.insert_text(fitz.Point(final_x + 2, sup_y - 2), letter, fontsize=10, color=(0, 0, 0), fontname="helv") # Black Text
+                    page.insert_text(fitz.Point(final_x + 2, sup_y - 2), letter, fontsize=10, color=(0, 0, 0), fontname="helv") 
                     
                     placed_superscripts.append(box_rect)
 
@@ -740,7 +741,7 @@ def main():
                 st.metric("Model", rct.get('model', 'SVM'))
 
             st.markdown("---")
-            st.markdown("###  Risk of Bias Assessment")
+            st.markdown("###  Risk of Bias Assessment (Analysis Only precise for RCTs)")
             bias = result.get('bias', [])
 
             if bias:
@@ -908,7 +909,7 @@ ER  -"""
     rct_bib_encoded = base64.b64encode(rct_bib.encode()).decode()
 
     escaped_rct_citation = rct_cite_text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    st.html(f"""
+    components.html(f"""
     <style>
         .cit-btn {{
             background-color: #5370d6;
@@ -952,7 +953,7 @@ ER  -"""
             }});
         }});
     </script>
-    """)
+    """, height=50)
 
 
 
@@ -984,7 +985,7 @@ ER  -"""
     robot_bib_encoded = base64.b64encode(robot_bib.encode()).decode()
 
     escaped_robot_citation = robot_cite_text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    st.html(f"""
+    components.html(f"""
     <style>
         .cit-btn {{
             background-color: #5370d6;
@@ -1028,7 +1029,7 @@ ER  -"""
             }});
         }});
     </script>
-    """)
+    """, height=50)
 
     st.markdown("---")
     st.markdown("##  Acknowledgements")
