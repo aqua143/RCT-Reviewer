@@ -752,14 +752,9 @@ def main():
                         judgement = 'Low'
                     else:
                         judgement = 'High/Unclear'
-                    domain = b.get('domain', '')
-                    color = BIAS_COLORS.get(domain, (1.0, 0.3, 0.3))
-                    hex_color = '#%02x%02x%02x' % (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
                     bias_data.append({
                         "Domain": b['domain'],
-                        "Color": hex_color,
                         "Judgement": judgement,
-                        "Evidence": b['text'][0][:60] + "..." if b.get('text') else "N/A"
                     })
 
                 df_bias = pd.DataFrame(bias_data)
@@ -787,12 +782,11 @@ def main():
                     display_j = 'Low' if raw_j == 'low' else 'High/Unclear'
 
                     with st.expander(f"{icon} {domain}"):
-                        ev_col1, ev_col2 = st.columns([1, 2])
-                        with ev_col1:
-                            st.markdown(f"**Judgement:** `{display_j}`")
-                        with ev_col2:
+                        if raw_j == 'low':
+                            st.markdown(f"**Judgement:** <span style='background-color:#28a745;padding:2px 8px;border-radius:3px;color:white;font-weight:bold'>{display_j}</span>", unsafe_allow_html=True)
+                        else:
                             fg_color = 'white' if sum(color) < 1.5 else 'black'
-                            st.markdown(f"**Color:** <span style='background-color:{hex_color};padding:2px 8px;border-radius:3px;color:{fg_color}'>{hex_color}</span>", unsafe_allow_html=True)
+                            st.markdown(f"**Judgement:** <span style='background-color:{hex_color};padding:2px 8px;border-radius:3px;color:{fg_color};font-weight:bold'>{display_j}</span>", unsafe_allow_html=True)
 
                         st.markdown(f"These are the sentences extracted from the uploaded RCT which depict particular **{domain}**.")
                         st.markdown("**Evidence:**")
@@ -1084,6 +1078,8 @@ ER  -"""
                     <a href="https://github.com/aurumz-rgb/RCT-Reviewer" target="_blank">
                         GitHub Repository
                     </a>
+                </div>
+                <div>
                 </div>
             </div>
         </div>
