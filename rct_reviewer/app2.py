@@ -3,6 +3,11 @@
 
 # This .py file downloads models from Hugging Face hub. This is the default recommended mode which is hosted online.
 
+
+
+# The reason I made this monolithic code file is that I wanted none of the .py files to share similar .py components (functions) since that would make maintaining RCT-Reviewer long term, quite difficult for me. 
+# The other .py files (app.py , app1.py) are developer run and so may not have any latest function which this default .py (app2.py) may have in the near future.
+
 import os
 os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"
 os.environ["HF_HUB_ETAG_TIMEOUT"] = "60"
