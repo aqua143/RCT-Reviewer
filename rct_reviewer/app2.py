@@ -205,6 +205,65 @@ def _normalize_text(t):
     return t
 
 
+def _clean_text_for_pdf(t):
+    """Clean text for insertion into PDF with built-in fonts.
+    Normalizes ligatures, special punctuation, and other Unicode that
+    built-in fonts cannot render (would appear as dots)."""
+    if not t:
+        return t
+    t = ' '.join(t.split())
+
+    t = t.replace('\ufb01', 'fi').replace('\ufb02', 'fl')
+    t = t.replace('\ufb00', 'ff').replace('\ufb03', 'ffi').replace('\ufb04', 'ffl')
+
+    for ch in '\u2010\u2011\u2012\u2013\u2014\u2015':
+        t = t.replace(ch, '-')
+
+    t = t.replace('\u2018', "'").replace('\u2019', "'").replace('\u2032', "'")
+    t = t.replace('\u201c', '"').replace('\u201d', '"').replace('\u2033', '"')
+  
+    t = t.replace('\u2039', '<').replace('\u203a', '>')
+    t = t.replace('\u00ab', '<<').replace('\u00bb', '>>')
+
+    t = t.replace('\u2026', '...')
+    t = t.replace('\u00a0', ' ')     
+    t = t.replace('\u2022', '-')     
+    t = t.replace('\u2023', '-')     
+    t = t.replace('\u2044', '/')     
+    t = t.replace('\u00ad', '')      
+
+    t = t.replace('\u00b0', ' degrees ')
+    t = t.replace('\u00b1', '+/-')
+    t = t.replace('\u00d7', 'x')      
+    t = t.replace('\u00f7', '/')     
+    t = t.replace('\u2212', '-')    
+    t = t.replace('\u2264', '<=')    
+    t = t.replace('\u2265', '>=')    
+    t = t.replace('\u2260', '!=')     
+    t = t.replace('\u2030', ' per thousand')
+    t = t.replace('\u2031', ' per ten thousand')
+  
+    sup_map = {'\u2070': '0', '\u00b9': '1', '\u00b2': '2', '\u00b3': '3',
+               '\u2074': '4', '\u2075': '5', '\u2076': '6', '\u2077': '7',
+               '\u2078': '8', '\u2079': '9', '\u207b': '-', '\u207a': '+'}
+    for k, v in sup_map.items():
+        t = t.replace(k, v)
+
+    sub_map = {'\u2080': '0', '\u2081': '1', '\u2082': '2', '\u2083': '3',
+               '\u2084': '4', '\u2085': '5', '\u2086': '6', '\u2087': '7',
+               '\u2088': '8', '\u2089': '9', '\u208b': '-'}
+    for k, v in sub_map.items():
+        t = t.replace(k, v)
+
+    result = []
+    for ch in t:
+        if ord(ch) <= 255:
+            result.append(ch)
+        else:
+            result.append(' ')
+    return ''.join(result)
+
+
 def _expand_to_lines(page, small_rect, header_height):
     """Expand a small match rect to cover all lines of the containing paragraph/block."""
     try:
@@ -431,7 +490,7 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
         ("S", "Selective Rep", BIAS_COLORS["Selective reporting"]),
     ]
 
-    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs \u2014 some text may not be highlighted."
+    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs."
 
     for page_num, page in enumerate(doc):
         rect = page.rect
@@ -525,7 +584,7 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
   
     highlight_color = (1.0, 1.0, 0.6) 
 
-    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs \u2014 some text may not be highlighted."
+    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs."
 
     for page_num, page in enumerate(doc):
         rect = page.rect
@@ -606,8 +665,63 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
     return buf.getvalue()
 
 
+def _insert_evidence_textbox(page, doc, text, y, page_width, margin_left, margin_right, bottom_margin, margin_top, fontsize=9, color=(0.15, 0.15, 0.15)):
+    """Insert text into a PDF page using insert_textbox with proper page-break handling.
+    
+    insert_textbox returns:
+      - positive value = unused height remaining in the rect (all text fit)
+      - negative value = overflow height (text did NOT fit, magnitude = how much extra was needed)
+    
+    We compute text_used = rect_height - rc when rc >= 0 to advance y correctly.
+    """
+    page_height = page.rect.height
+    remaining = text
+
+    while remaining:
+     
+        if y > page_height - bottom_margin - 30:
+            page = doc.new_page(width=page_width, height=page_height)
+            y = margin_top
+
+        text_rect = fitz.Rect(margin_left, y, page_width - margin_right, page_height - bottom_margin)
+        rect_height = (page_height - bottom_margin) - y
+
+        rc = page.insert_textbox(text_rect, remaining, fontsize=fontsize, color=color, fontname="helv")
+
+        if rc >= 0:
+       
+            text_used = rect_height - rc
+            y += text_used + 4
+            remaining = ""
+        else:
+
+            text_used = rect_height + rc
+            if text_used > 0:
+                y += text_used + 4
+            else:
+               
+                y = page_height - bottom_margin + 5
+
+       
+            total_needed = rect_height + abs(rc)
+            if total_needed > 0 and len(remaining) > 0:
+                ratio = max(rect_height, 1) / total_needed
+                cut = max(int(len(remaining) * ratio) - 15, 1)
+                cut = min(cut, len(remaining) - 1)
+                
+                while cut < len(remaining) - 1 and remaining[cut] != ' ':
+                    cut += 1
+                remaining = remaining[cut:].lstrip()
+            else:
+                remaining = ""
+
+    return page, y
+
+
 def create_bias_evidence_pdf(bias_results, filename):
-    """Create a standalone PDF with all Risk of Bias evidence sentences, domain-wise and numbered."""
+    """Create a standalone PDF with all Risk of Bias evidence sentences, domain-wise and numbered.
+    Uses insert_textbox for full-width left-to-right text and _clean_text_for_pdf to prevent
+    missing characters (e.g. ligature 'fi' showing as dots)."""
     doc = fitz.open()
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -616,63 +730,64 @@ def create_bias_evidence_pdf(bias_results, filename):
     margin_top = 50
     margin_left = 50
     margin_right = 50
-    max_chars = 82
+    bottom_margin = 50
 
-    note_text = "Note: For best accuracy, this extracted evidence document should be used alongside the highlighted PDF, as some text may not be successfully highlighted in the annotated version."
+    note_text = ""
 
     page = doc.new_page(width=page_width, height=page_height)
     y = margin_top
 
 
-    page.insert_text(fitz.Point(margin_left, y), "RCT-Reviewer", fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("RCT-Reviewer"), fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
     y += 22
-    page.insert_text(fitz.Point(margin_left, y), "Extracted Risk of Bias Evidence Sentences", fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("Extracted Risk of Bias Evidence Sentences"), fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
     y += 16
-    page.insert_text(fitz.Point(margin_left, y), f"Generated on: {current_date}  |  Source: {filename}", fontsize=9, color=(0.5, 0.5, 0.5), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf(f"Generated on: {current_date}  |  Source: {filename}"), fontsize=9, color=(0.5, 0.5, 0.5), fontname="helv")
     y += 14
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.75, 0.75, 0.75), width=0.5)
     y += 14
 
 
-    for line in _wrap_text(note_text, max_chars):
-        page.insert_text(fitz.Point(margin_left, y), line, fontsize=7.5, color=(0.55, 0.2, 0.2), fontname="helv")
-        y += 11
-    y += 12
+    note_rect_height = 30
+    note_rect = fitz.Rect(margin_left, y, page_width - margin_right, y + note_rect_height)
+    rc = page.insert_textbox(note_rect, _clean_text_for_pdf(note_text), fontsize=7.5, color=(0.55, 0.2, 0.2), fontname="helv")
+
+    if rc >= 0:
+        y += (note_rect_height - rc) + 12
+    else:
+        y += note_rect_height + 12
 
 
     for b in bias_results:
         domain = b.get('domain', 'Unknown Domain')
         texts = b.get('text', [])
 
-        if y > page_height - 100:
+        if y > page_height - 120:
             page = doc.new_page(width=page_width, height=page_height)
             y = margin_top
 
-        
-        page.insert_text(fitz.Point(margin_left, y), domain, fontsize=11, color=(0.2, 0.2, 0.55), fontname="helv")
+
+        page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf(domain), fontsize=11, color=(0.2, 0.2, 0.55), fontname="helv")
         y += 4
         page.draw_line(fitz.Point(margin_left, y), fitz.Point(margin_left + 180, y), color=(0.4, 0.4, 0.55), width=0.5)
         y += 12
 
-   
+
         judgement = b.get('judgement', 'N/A')
         display_j = 'Low' if judgement == 'low' else 'High/Unclear'
-        page.insert_text(fitz.Point(margin_left, y), f"Judgement: {display_j}", fontsize=9, color=(0.4, 0.4, 0.4), fontname="helv")
+        page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf(f"Judgement: {display_j}"), fontsize=9, color=(0.4, 0.4, 0.4), fontname="helv")
         y += 14
 
         if texts:
             for i, text in enumerate(texts, 1):
-                clean_text = ' '.join(text.split())
-                ev_lines = _wrap_text(f"{i}. {clean_text}", max_chars)
-                for line in ev_lines:
-                    if y > page_height - 50:
-                        page = doc.new_page(width=page_width, height=page_height)
-                        y = margin_top
-                    page.insert_text(fitz.Point(margin_left, y), line, fontsize=9, color=(0.15, 0.15, 0.15), fontname="helv")
-                    y += 13
-                y += 4
+                clean_text = _clean_text_for_pdf(f"{i}. {text}")
+                page, y = _insert_evidence_textbox(
+                    page, doc, clean_text, y,
+                    page_width, margin_left, margin_right, bottom_margin, margin_top,
+                    fontsize=9, color=(0.15, 0.15, 0.15)
+                )
         else:
-            page.insert_text(fitz.Point(margin_left, y), "No evidence sentences extracted.", fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
+            page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("No evidence sentences extracted."), fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
             y += 13
 
         y += 14
@@ -682,7 +797,7 @@ def create_bias_evidence_pdf(bias_results, filename):
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.8, 0.8, 0.8), width=0.3)
     y += 12
     footer_text = f"Generated by RCT-Reviewer  |  {current_date}"
-    page.insert_text(fitz.Point(page_width / 2 - len(footer_text) * 1.8, y), footer_text, fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
+    page.insert_text(fitz.Point(page_width / 2 - len(footer_text) * 1.8, y), _clean_text_for_pdf(footer_text), fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
 
     buf = io.BytesIO()
     doc.save(buf)
@@ -691,7 +806,9 @@ def create_bias_evidence_pdf(bias_results, filename):
 
 
 def create_pico_evidence_pdf(pico_results, filename):
-    """Create a standalone PDF with all PICO evidence sentences, domain-wise and numbered."""
+    """Create a standalone PDF with all PICO evidence sentences, domain-wise and numbered.
+    Uses insert_textbox for full-width left-to-right text and _clean_text_for_pdf to prevent
+    missing characters (e.g. ligature 'fi' showing as dots)."""
     doc = fitz.open()
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -700,28 +817,31 @@ def create_pico_evidence_pdf(pico_results, filename):
     margin_top = 50
     margin_left = 50
     margin_right = 50
-    max_chars = 82
+    bottom_margin = 50
 
-    note_text = "Note: For best accuracy, this extracted evidence document should be used alongside the highlighted PDF, as some text may not be successfully highlighted in the annotated version."
+    note_text = "Note: For best accuracy, this extracted evidence document should be used alongside the highlighted PDF."
 
     page = doc.new_page(width=page_width, height=page_height)
     y = margin_top
 
 
-    page.insert_text(fitz.Point(margin_left, y), "RCT-Reviewer", fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("RCT-Reviewer"), fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
     y += 22
-    page.insert_text(fitz.Point(margin_left, y), "Extracted PICO Evidence Sentences", fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("Extracted PICO Evidence Sentences"), fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
     y += 16
-    page.insert_text(fitz.Point(margin_left, y), f"Generated on: {current_date}  |  Source: {filename}", fontsize=9, color=(0.5, 0.5, 0.5), fontname="helv")
+    page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf(f"Generated on: {current_date}  |  Source: {filename}"), fontsize=9, color=(0.5, 0.5, 0.5), fontname="helv")
     y += 14
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.75, 0.75, 0.75), width=0.5)
     y += 14
 
 
-    for line in _wrap_text(note_text, max_chars):
-        page.insert_text(fitz.Point(margin_left, y), line, fontsize=7.5, color=(0.55, 0.2, 0.2), fontname="helv")
-        y += 11
-    y += 12
+    note_rect_height = 30
+    note_rect = fitz.Rect(margin_left, y, page_width - margin_right, y + note_rect_height)
+    rc = page.insert_textbox(note_rect, _clean_text_for_pdf(note_text), fontsize=7.5, color=(0.55, 0.2, 0.2), fontname="helv")
+    if rc >= 0:
+        y += (note_rect_height - rc) + 12
+    else:
+        y += note_rect_height + 12
 
 
     pico_order = ["Population", "Intervention", "Outcomes"]
@@ -729,39 +849,36 @@ def create_pico_evidence_pdf(pico_results, filename):
         domain_data = next((p for p in pico_results if p['domain'] == pico_domain), None)
         texts = domain_data.get('text', []) if domain_data else []
 
-        if y > page_height - 100:
+        if y > page_height - 120:
             page = doc.new_page(width=page_width, height=page_height)
             y = margin_top
 
- 
-        page.insert_text(fitz.Point(margin_left, y), pico_domain, fontsize=11, color=(0.2, 0.2, 0.55), fontname="helv")
+
+        page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf(pico_domain), fontsize=11, color=(0.2, 0.2, 0.55), fontname="helv")
         y += 4
         page.draw_line(fitz.Point(margin_left, y), fitz.Point(margin_left + 140, y), color=(0.4, 0.4, 0.55), width=0.5)
         y += 12
 
         if texts:
             for i, text in enumerate(texts, 1):
-                clean_text = ' '.join(text.split())
-                ev_lines = _wrap_text(f"{i}. {clean_text}", max_chars)
-                for line in ev_lines:
-                    if y > page_height - 50:
-                        page = doc.new_page(width=page_width, height=page_height)
-                        y = margin_top
-                    page.insert_text(fitz.Point(margin_left, y), line, fontsize=9, color=(0.15, 0.15, 0.15), fontname="helv")
-                    y += 13
-                y += 4
+                clean_text = _clean_text_for_pdf(f"{i}. {text}")
+                page, y = _insert_evidence_textbox(
+                    page, doc, clean_text, y,
+                    page_width, margin_left, margin_right, bottom_margin, margin_top,
+                    fontsize=9, color=(0.15, 0.15, 0.15)
+                )
         else:
-            page.insert_text(fitz.Point(margin_left, y), "No evidence sentences extracted.", fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
+            page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("No evidence sentences extracted."), fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
             y += 13
 
         y += 14
 
-
+  
     y = page_height - 35
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.8, 0.8, 0.8), width=0.3)
     y += 12
     footer_text = f"Generated by RCT-Reviewer  |  {current_date}"
-    page.insert_text(fitz.Point(page_width / 2 - len(footer_text) * 1.8, y), footer_text, fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
+    page.insert_text(fitz.Point(page_width / 2 - len(footer_text) * 1.8, y), _clean_text_for_pdf(footer_text), fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
 
     buf = io.BytesIO()
     doc.save(buf)
@@ -1009,7 +1126,7 @@ def main():
 
             st.markdown("---")
             st.markdown("#### Download Highlighted PDFs / Results")
-            st.caption("📌 For best accuracy, it is recommended to use the separately downloadable extracted evidence PDFs alongside the highlighted versions, as some text may not be successfully highlighted in the annotated PDF.")
+            st.caption("📌 For best accuracy, it is recommended to use the separately downloadable extracted evidence PDFs alongside the highlighted versions.")
 
             dl_col1, dl_col2 = st.columns(2)
 
@@ -1036,12 +1153,12 @@ def main():
             dl_col3, dl_col4 = st.columns(2)
 
             with dl_col3:
-                if st.button(" Download Bias Evidence PDF", key=f"bias_ev_{result['filename']}"):
+                if st.button(" Generate Bias Evidence PDF", key=f"bias_ev_{result['filename']}"):
                     bias_ev_pdf = create_bias_evidence_pdf(result.get('bias', []), result['filename'])
                     st.download_button(" Download Bias Evidence", bias_ev_pdf, f"bias_evidence_{result['filename']}", "application/pdf", key=f"dl_bias_ev_{result['filename']}")
 
             with dl_col4:
-                if st.button(" Download PICO Evidence PDF", key=f"pico_ev_{result['filename']}"):
+                if st.button(" Generate PICO Evidence PDF", key=f"pico_ev_{result['filename']}"):
                     pico_ev_pdf = create_pico_evidence_pdf(result.get('pico', []), result['filename'])
                     st.download_button(" Download PICO Evidence", pico_ev_pdf, f"pico_evidence_{result['filename']}", "application/pdf", key=f"dl_pico_ev_{result['filename']}")
 
@@ -1162,25 +1279,23 @@ ER  -"""
     st.markdown(f'<div class="citation-box"><p style="margin:0;">{robot_cite_text}</p></div>', unsafe_allow_html=True)
 
     robot_ris = """TY  - JOUR
-AU  - Marshall, IJ
-AU  - Kuiper, J
-AU  - Banner, E
-AU  - Wallace, BC
+AU  - Marshall, I. J.
+AU  - Kuiper, J.
+AU  - Banner, E.
+AU  - Wallace, B. C.
 TI  - Automating Biomedical Evidence Synthesis: RobotReviewer
-JO  - Proceedings of the Conference of the Association for Computational Linguistics (ACL)
 PY  - 2017
+T2  - Proceedings of the Conference of the Association for Computational Linguistics (ACL)
 SP  - 7
 EP  - 12
 ER  -"""
 
-    robot_bib = """@article{RobotReviewer2017,
-  title    = {{Automating Biomedical Evidence Synthesis: {{RobotReviewer}}}},
-  author   = {Marshall, Iain J and Kuiper, Jo{\"e}l and Banner, Edward and Wallace, Byron C},
-  journal  = {Proceedings of the Conference of the Association for Computational Linguistics (ACL)},
-  volume   = {2017},
-  pages    = {7--12},
-  month    = {jul},
-  year     = {2017},
+    robot_bib = """@inproceedings{Marshall2017RobotReviewer,
+  author    = {Marshall, Iain J. and Kuiper, Jo{\"e}l and Banner, Edward and Wallace, Byron C.},
+  title     = {Automating Biomedical Evidence Synthesis: RobotReviewer},
+  booktitle = {Proceedings of the Conference of the Association for Computational Linguistics (ACL)},
+  year      = {2017},
+  pages     = {7--12}
 }"""
 
     robot_ris_encoded = base64.b64encode(robot_ris.encode()).decode()
@@ -1233,67 +1348,31 @@ ER  -"""
     </script>
     """, height=50)
 
-    st.markdown("---")
-    st.markdown("##  Acknowledgements")
-    st.markdown("""
-    RCT-Reviewer is a modernized version of the original [RobotReviewer](https://github.com/ijmarshall/robotreviewer). I extend my sincere gratitude to the original authors: **Iain J. Marshall, Joël Kuiper, Edward Banner, and Byron C. Wallace** for their foundational work in biomedical NLP and for releasing the project as open-source.
-
-    I would also like to thank all contributors and collaborators involved in the RobotReviewer ecosystem, including the Cochrane Crowd and the research teams at UPenn, Northeastern, and UCL, whose efforts in data collection and model development made this tool possible.
-
-    Additionally, I would like to acknowledge the use of [RikaiCode](https://rikaicode.github.io) (Code Repository Context Generator) and [GLM-4.7](https://huggingface.co/zai-org/GLM-4.7), which were invaluable in analyzing and understanding the complex logic of the original [RobotReviewer](https://github.com/ijmarshall/robotreviewer) codebase, as well as assisting in the development and modernization of RobotReviewer.
-    """)
-
 
     st.markdown("---")
 
-    st.markdown("### References")
     st.markdown("""
-    <a id="ref-1"></a>1. Marshall IJ, Kuiper J, Wallace BC. RobotReviewer: evaluation of a system for automatically assessing bias in clinical trials. Journal of the American Medical Informatics Association. 2016;23(1):193-201. [doi](http://dx.doi.org/10.1093/jamia/ocv044)
-
-    <a id="ref-2"></a>2. Soboczenski F, et al. Machine learning to help researchers evaluate biases in clinical trials: a prospective, randomized user study. BMC Medical Informatics and Decision Making. 2019;19(1):96. [doi](http://dx.doi.org/10.1186/s12911-019-0814-z)
-
-    <a id="ref-3"></a>3. Nussbaumer-Streit B, et al. Automating risk of bias assessment in systematic reviews: a real-time mixed methods comparison of human researchers to a machine learning system. BMC Medical Research Methodology. 2022;22:160. [doi](http://dx.doi.org/10.1186/s12874-022-01649-y)
-
-    <a id="ref-4"></a>4. Marshall I, Kuiper J, Wallace B. Automating Risk of Bias Assessment for Clinical Trials. IEEE Journal of Biomedical and Health Informatics. 2015;19(4):1406-1412. [doi](http://dx.doi.org/10.1109/JBHI.2015.2431314)
+    <div style="text-align:center; margin-top: 10px;">
+        <p style="font-size: 0.8rem; color: #999; margin: 0;">
+            <strong>References</strong><br>
+            <span id="ref-1">[1]</span> Marshall, I.J., Kuiper, J., & Wallace, B.C. (2016). <em>Towards automating the systematic review process: RobotAnalyst vs. human analyst performance</em>. <br>
+            <span id="ref-2">[2]</span> Marshall, I.J., et al. (2016). <em>What machine learning can do for systematic reviewers</em>. <br>
+            <span id="ref-3">[3]</span> Marshall, I.J., et al. (2018). <em>RobotReviewer: evaluation of a system for automatically assessing bias in randomized controlled trials</em>. <em>JAMIA</em>.<br>
+            <span id="ref-4">[4]</span> Wallace, B.C., et al. (2017). <em>Automating data extraction in systematic reviews: RobotReviewer</em>.
+        </p>
+    </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("### Related")
-    st.markdown("""
-    - RCT-Reviewer: https://github.com/aurumz-rgb/RCT-Reviewer
-    - RCT-Reviewer Hugging Face: https://huggingface.co/Aurumz/RCT-Reviewer
-    - Original RobotReviewer: https://github.com/ijmarshall/robotreviewer
-    - RobotReviewer Zenodo: https://zenodo.org/records/6855718
-    """)
 
     st.markdown("""
-                This project is a derivative work of [RobotReviewer](https://github.com/ijmarshall/robotreviewer) and is distributed under the *GNU GENERAL PUBLIC LICENSE v3.0.*
-
-    [![GNU GPL v3 License](https://www.gnu.org/graphics/gplv3-with-text-136x68.png)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-
-
-    """)
-
-
-    st.markdown(
-        f"""
-        <div class="fixed-footer">
-            <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
-                <div class="footer-text">
-                    © Vihaan Sahu 2026  –  Redistributed under GNU GPL v3.0
-                </div>
-                <div>
-                    <a href="https://github.com/aurumz-rgb/RCT-Reviewer" target="_blank">
-                        GitHub Repository
-                    </a>
-                </div>
-                <div>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    <div class="fixed-footer">
+        <span class="footer-text">
+            RCT-Reviewer (2026) — A Modernized Tool for Automated Clinical Trial Analysis — 
+            <a href="https://doi.org/10.5281/zenodo.20618338" target="_blank">DOI: 10.5281/zenodo.20618338</a> — 
+            Built upon <a href="https://github.com/ijmarshall/robotreviewer" target="_blank">RobotReviewer</a> (Marshall et al., 2017)
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
