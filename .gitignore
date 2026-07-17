@@ -103,3 +103,7 @@ robotreviewer/config.json
 
 .env
 !.envTemplate
+
+
+
+rct_reviewer/.env
