@@ -889,6 +889,10 @@ def create_bias_evidence_pdf(bias_results, filename):
 
 
     page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("RCT-Reviewer"), fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
+    try:
+        page.insert_image(fitz.Rect(page_width - margin_right - 35, y - 20, page_width - margin_right, y + 10), filename="assets/main_logo_zoomed.png")
+    except Exception:
+        pass
     y += 22
     page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("Extracted Risk of Bias Evidence Sentences"), fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
     y += 16
@@ -936,6 +940,7 @@ def create_bias_evidence_pdf(bias_results, filename):
                     page_width, margin_left, margin_right, bottom_margin, margin_top,
                     fontsize=9, color=(0.15, 0.15, 0.15)
                 )
+                y += 16
         else:
             page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("No evidence sentences extracted."), fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
             y += 13
@@ -972,8 +977,11 @@ def create_pico_evidence_pdf(pico_results, filename):
     page = doc.new_page(width=page_width, height=page_height)
     y = margin_top
 
-
     page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("RCT-Reviewer"), fontsize=20, color=(0.15, 0.15, 0.15), fontname="helv")
+    try:
+        page.insert_image(fitz.Rect(page_width - margin_right - 35, y - 20, page_width - margin_right, y + 10), filename="assets/main_logo_zoomed.png")
+    except Exception:
+        pass
     y += 22
     page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("Extracted PICO Evidence Sentences"), fontsize=13, color=(0.35, 0.35, 0.35), fontname="helv")
     y += 16
@@ -1015,6 +1023,7 @@ def create_pico_evidence_pdf(pico_results, filename):
                     page_width, margin_left, margin_right, bottom_margin, margin_top,
                     fontsize=9, color=(0.15, 0.15, 0.15)
                 )
+                y += 16
         else:
             page.insert_text(fitz.Point(margin_left, y), _clean_text_for_pdf("No evidence sentences extracted."), fontsize=9, color=(0.6, 0.6, 0.6), fontname="helv")
             y += 13
