@@ -619,7 +619,7 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
         ("S", "Selective Rep", BIAS_COLORS["Selective reporting"]),
     ]
 
-    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs."
+    header_note = "Note: For optimal accuracy, use this together with the separately extracted evidence PDFs. Highlighting may not work in some PDFs due to differences in text formatting."
 
     for page_num, page in enumerate(doc):
         rect = page.rect
@@ -713,7 +713,7 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
   
     highlight_color = (1.0, 1.0, 0.6) 
 
-    header_note = "Note: For best accuracy, use this alongside the separate extracted evidence PDFs."
+    header_note = "Note: For optimal accuracy, use this together with the separately extracted evidence PDFs. Highlighting may not work in some PDFs due to differences in text formatting."
 
     for page_num, page in enumerate(doc):
         rect = page.rect
@@ -948,7 +948,7 @@ def create_pico_evidence_pdf(pico_results, filename):
     margin_right = 50
     bottom_margin = 50
 
-    note_text = "Note: For best accuracy, this extracted evidence document should be used alongside the highlighted PDF."
+    note_text = "Note: For optimal accuracy, use this together with the separately extracted evidence PDFs. Highlighting may not work in some PDFs due to differences in text formatting."
 
     page = doc.new_page(width=page_width, height=page_height)
     y = margin_top
@@ -1106,7 +1106,7 @@ def main():
                 mapped = pct * 0.8
                 overall_progress.progress(
                     mapped,
-                    text=f"[Download] {text}" if text else f"[Download] {pct*100:.1f}%"
+                    text=f"[ONE TIME DOWNLOAD] {text}" if text else f"[ONE TIME DOWNLOAD] {pct*100:.1f}%"
                 )
 
         class _DownloadStatusProxy:
@@ -1360,7 +1360,7 @@ def main():
 
             st.markdown("---")
             st.markdown("#### Download Highlighted PDFs / Results")
-            st.caption("📌 For best accuracy, it is recommended to use the separately downloadable extracted evidence PDFs alongside the highlighted versions.")
+            st.caption("📌 Note: For optimal accuracy, use this together with the separately extracted evidence PDFs. Highlighting may not work in some PDFs due to differences in text formatting.")
 
             dl_col1, dl_col2 = st.columns(2)
 
