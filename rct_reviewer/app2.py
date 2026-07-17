@@ -17,6 +17,10 @@ import time
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
 import streamlit.components.v1 as components
 import logging
@@ -618,10 +622,10 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
     highlight_color = (1.0, 0.9, 0.9)
 
     bias_legend_items = [
-        ("R", "Random Sequence Gen.", BIAS_COLORS["Random sequence generation"]),
+        ("R", "Random Sequence Generation", BIAS_COLORS["Random sequence generation"]),
         ("A", "Allocation Concealment", BIAS_COLORS["Allocation concealment"]),
         ("B", "Blinding of Participants", BIAS_COLORS["Blinding of participants and personnel"]),
-        ("O", "Blinding of Outcome Assess.", BIAS_COLORS["Blinding of outcome assessment"]),
+        ("O", "Blinding of Outcome Assessment", BIAS_COLORS["Blinding of outcome assessment"]),
         ("I", "Incomplete Outcome Data", BIAS_COLORS["Incomplete outcome data"]),
         ("S", "Selective Reporting", BIAS_COLORS["Selective reporting"]),
     ]
@@ -636,48 +640,29 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
 
        
 
-        legend_x = 10
-        legend_y = 12
-  
-        hl_box = fitz.Rect(legend_x, legend_y - 7, legend_x + 16, legend_y + 7)
-        page.draw_rect(hl_box, color=highlight_color, fill=highlight_color, width=0)
-        page.insert_text(fitz.Point(legend_x + 20, legend_y + 3), "Text Highlight", fontsize=7, color=(0.2, 0.2, 0.2), fontname="helv")
-        legend_x += 110
+        legend_items = [("", "Text Highlight", highlight_color)] + bias_legend_items
+        col_positions = [10, 200, 390]
+        row_ys = [14, 28, 42]
 
-        for letter, label, color in bias_legend_items[:2]:
-            box_rect = fitz.Rect(legend_x, legend_y - 7, legend_x + 16, legend_y + 7)
+        for idx, (letter, label, color) in enumerate(legend_items):
+            lx = col_positions[idx % 3]
+            ly = row_ys[idx // 3]
+            box_rect = fitz.Rect(lx, ly - 7, lx + 16, ly + 7)
             page.draw_rect(box_rect, color=color, fill=color, width=0)
-            page.insert_text(fitz.Point(legend_x + 4, legend_y + 3), letter, fontsize=8, color=(0, 0, 0), fontname="helv")
-            page.insert_text(fitz.Point(legend_x + 20, legend_y + 3), label, fontsize=6.5, color=(0.2, 0.2, 0.2), fontname="helv")
-            legend_x += 240
-
-        legend_x = 10
-        legend_y = 26
-        for letter, label, color in bias_legend_items[2:4]:
-            box_rect = fitz.Rect(legend_x, legend_y - 7, legend_x + 16, legend_y + 7)
-            page.draw_rect(box_rect, color=color, fill=color, width=0)
-            page.insert_text(fitz.Point(legend_x + 4, legend_y + 3), letter, fontsize=8, color=(0, 0, 0), fontname="helv")
-            page.insert_text(fitz.Point(legend_x + 20, legend_y + 3), label, fontsize=6.5, color=(0.2, 0.2, 0.2), fontname="helv")
-            legend_x += 280
-
-        legend_x = 10
-        legend_y = 40
-        for letter, label, color in bias_legend_items[4:]:
-            box_rect = fitz.Rect(legend_x, legend_y - 7, legend_x + 16, legend_y + 7)
-            page.draw_rect(box_rect, color=color, fill=color, width=0)
-            page.insert_text(fitz.Point(legend_x + 4, legend_y + 3), letter, fontsize=8, color=(0, 0, 0), fontname="helv")
-            page.insert_text(fitz.Point(legend_x + 20, legend_y + 3), label, fontsize=6.5, color=(0.2, 0.2, 0.2), fontname="helv")
-            legend_x += 260
+            if letter:
+                page.insert_text(fitz.Point(lx + 4, ly + 3), letter, fontsize=8, color=(0, 0, 0), fontname="helv")
+            label_fs = 7 if not letter else 6.5
+            page.insert_text(fitz.Point(lx + 20, ly + 3), label, fontsize=label_fs, color=(0.2, 0.2, 0.2), fontname="helv")
 
         page.insert_text(fitz.Point(10, 58), header_note, fontsize=6.5, color=(0.55, 0.2, 0.2), fontname="helv")
 
-        page.draw_line(fitz.Point(0, header_height - 2), fitz.Point(rect.width, header_height - 2), color=(0.6, 0.6, 0.6), width=1.5)
+        page.draw_line(fitz.Point(0, header_height - 7), fitz.Point(rect.width, header_height - 7), color=(0.6, 0.6, 0.6), width=1.5)
 
         legend_dest_point = fitz.Point(rect.width / 2, (12 + 40) / 2)
 
 
-        footer_text = f"Risk of Bias / RCT-Reviewer on {current_date}"
-        footer_fontsize = 8
+        footer_text = f"Risk of Bias / RCT-Reviewer on {current_date}."
+        footer_fontsize = 8.5
         text_width = len(footer_text) * footer_fontsize * 0.5
         logo_w = 18
         logo_h = 18
@@ -770,13 +755,13 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
 
         page.insert_text(fitz.Point(10, 35), header_note, fontsize=6.5, color=(0.55, 0.2, 0.2), fontname="helv")
 
-        page.draw_line(fitz.Point(0, header_height - 2), fitz.Point(rect.width, header_height - 2), color=(0.6, 0.6, 0.6), width=1.5)
+        page.draw_line(fitz.Point(0, header_height - 16), fitz.Point(rect.width, header_height - 16), color=(0.6, 0.6, 0.6), width=1.5)
 
         legend_dest_point = fitz.Point(rect.width / 2, legend_y)
 
    
-        footer_text = f"RCT-Reviewer on {current_date}"
-        footer_fontsize = 8
+        footer_text = f"RCT-Reviewer on {current_date}."
+        footer_fontsize = 8.5
         text_width = len(footer_text) * footer_fontsize * 0.5
         logo_w = 18
         logo_h = 18
@@ -961,16 +946,6 @@ def create_bias_evidence_pdf(bias_results, filename):
     y = page_height - 35
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.8, 0.8, 0.8), width=0.3)
     y += 12
-    footer_text = f"Risk of Bias / RCT-Reviewer on {current_date}"
-    text_width = len(footer_text) * 4
-    logo_w = 14
-    logo_h = 14
-    logo_x = page_width - margin_right - text_width - logo_w - 8
-    try:
-        page.insert_image(fitz.Rect(logo_x, y - logo_h + 2, logo_x + logo_w, y + 2), filename="assets/main_logo_zoomed.png")
-    except Exception:
-        pass
-    page.insert_text(fitz.Point(logo_x + logo_w + 5, y), _clean_text_for_pdf(footer_text), fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
 
     buf = io.BytesIO()
     doc.save(buf)
@@ -992,7 +967,7 @@ def create_pico_evidence_pdf(pico_results, filename):
     margin_right = 50
     bottom_margin = 50
 
-    note_text = "Note: For optimal accuracy, use this together with the separately extracted evidence PDFs. Highlighting may not work in some PDFs due to differences in text formatting."
+    note_text = ""
 
     page = doc.new_page(width=page_width, height=page_height)
     y = margin_top
@@ -1050,21 +1025,12 @@ def create_pico_evidence_pdf(pico_results, filename):
     y = page_height - 35
     page.draw_line(fitz.Point(margin_left, y), fitz.Point(page_width - margin_right, y), color=(0.8, 0.8, 0.8), width=0.3)
     y += 12
-    footer_text = f"RCT-Reviewer on {current_date}"
-    text_width = len(footer_text) * 4
-    logo_w = 14
-    logo_h = 14
-    logo_x = page_width - margin_right - text_width - logo_w - 8
-    try:
-        page.insert_image(fitz.Rect(logo_x, y - logo_h + 2, logo_x + logo_w, y + 2), filename="assets/main_logo_zoomed.png")
-    except Exception:
-        pass
-    page.insert_text(fitz.Point(logo_x + logo_w + 5, y), _clean_text_for_pdf(footer_text), fontsize=7, color=(0.6, 0.6, 0.6), fontname="helv")
 
     buf = io.BytesIO()
     doc.save(buf)
     doc.close()
     return buf.getvalue()
+
 
 
 def export_to_json(results):
@@ -1422,7 +1388,7 @@ def main():
                     print(f"[RCT-Reviewer] Generating Bias highlighted PDF for: {fname}...")
                     log.info(f"Generating Bias highlighted PDF for: {fname}...")
 
-                    with st.spinner("Creating Bias-annotated PDF with highlights & superscripts... Please be patient... This may take some time..."):
+                    with st.spinner("Creating Bias-annotated PDF with highlights & superscripts... Please be patient... Precision takes time..."):
                         annotations = []
                         for b in result.get('bias', []):
                             for text in b.get('text', []):
@@ -1439,7 +1405,7 @@ def main():
                     print(f"[RCT-Reviewer] Generating PICO highlighted PDF for: {fname}...")
                     log.info(f"Generating PICO highlighted PDF for: {fname}...")
             
-                    with st.spinner("Creating PICO-annotated PDF with highlights & superscripts... Please be patient... This may take some time..."):
+                    with st.spinner("Creating PICO-annotated PDF with highlights & superscripts... Please be patient... Precision takes time..."):
                         annotations = []
                         for p in result.get('pico', []):
                             for text in p.get('text', []):
@@ -1742,13 +1708,6 @@ ER  -"""
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
 
 
 
