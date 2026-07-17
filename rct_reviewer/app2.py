@@ -144,7 +144,7 @@ def download_models(progress_bar=None, status_text=None):
     if status_text is not None:
         status_text.info("Models not found locally. Downloading from Hugging Face Hub (One-time setup)...")
 
-    api = HfApi()
+    api = HfApi(token=os.getenv("HF_TOKEN"))
     try:
         files = api.list_repo_files(HF_REPO_ID, repo_type="model")
     except Exception as e:
@@ -172,7 +172,8 @@ def download_models(progress_bar=None, status_text=None):
                     repo_id=HF_REPO_ID,
                     filename=fname,
                     repo_type="model",
-                    local_dir=MODELS_DIR
+                    local_dir=MODELS_DIR,
+                    token=os.getenv("HF_TOKEN")
                 )
                 file_success = True
                 break
