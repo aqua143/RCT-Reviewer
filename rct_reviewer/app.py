@@ -5,6 +5,10 @@
 
 # This .py file uses .joblib model files present directly in the repository. It loads directly from the repo.
 
+# PROTOTYPE DEV VERSION; This is lacking behind the polished and more featurefull app2.py. 
+# THIS APP.PY WILL NOT BE UPDATED AS PER THE LATEST COMMITS AND I WILL SOLELY WORK ON APP2.PY ONLY IN FUTURE.
+
+# Recommended: Please run app2.py over this .py unless you want to test the local .joblib model files.
 
 
 import sys
@@ -348,7 +352,7 @@ def main():
     top_k_sentences = st.sidebar.slider("Evidence Sentences per Domain", 1, 5, 3)
     
 
-    with st.sidebar.expander("🎨 PDF Highlight Colors", expanded=True):
+    with st.sidebar.expander(" PDF Highlight Colors", expanded=True):
         st.markdown("**BIAS (Red Spectrum):**")
         st.markdown("- <span style='background-color:#FF9999;padding:2px 6px;border-radius:3px;'>Light Pink</span> - Random Sequence", unsafe_allow_html=True)
         st.markdown("- <span style='background-color:#FF4D4D;padding:2px 6px;border-radius:3px;color:white;'>Bright Red</span> - Allocation", unsafe_allow_html=True)
@@ -363,19 +367,18 @@ def main():
         st.markdown("- <span style='background-color:#FF9933;padding:2px 6px;border-radius:3px;'>Orange</span> - Intervention", unsafe_allow_html=True)
         st.markdown("- <span style='background-color:#FF7F50;padding:2px 6px;border-radius:3px;'>Coral</span> - Outcomes", unsafe_allow_html=True)
     
-    with st.sidebar.expander("📋 How to Cite"):
+    with st.sidebar.expander(" How to Cite"):
         st.markdown("""
-        **Marshall IJ, Kuiper J, & Wallace BC.** RobotReviewer: evaluation of a system for 
-        automatically assessing bias in clinical trials. *JAMIA* 2015.
+       Sahu, V. (2026). RCT-Reviewer: A Modernized, Standalone Tool for Automated Analysis of Clinical Trials (RCTs). Zenodo. https://doi.org/10.5281/zenodo.20618338
         """)
     
     uploaded_files = st.file_uploader("📄 Upload Clinical Trial PDFs", type="pdf", accept_multiple_files=True)
     
     if not uploaded_files:
-        st.info("👆 Upload PDF files to begin analysis")
+        st.info(" Upload PDF files to begin analysis")
         return
     
-    if st.button("🚀 Analyze Documents", type="primary"):
+    if st.button(" Analyze Documents", type="primary"):
         results = []
         progress = st.progress(0)
         status = st.empty()
@@ -418,7 +421,7 @@ def main():
         results = st.session_state['results']
         
         st.markdown("---")
-        st.markdown("## 📊 Analysis Summary")
+        st.markdown("##  Analysis Summary")
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -435,10 +438,10 @@ def main():
         st.markdown("---")
         
         for result in results:
-            with st.expander(f"📄 {result['filename']}", expanded=True):
+            with st.expander(f"{result['filename']}", expanded=True):
                 
             
-                st.markdown("### 🧪 RCT Classification")
+                st.markdown("###  RCT Classification")
                 rct = result['rct']
                 rct_col1, rct_col2, rct_col3 = st.columns(3)
                 with rct_col1:
@@ -449,10 +452,10 @@ def main():
                     st.metric("Model", rct.get('model', 'SVM'))
                 
          
-                st.markdown("### 🎯 PICO Extraction")
+                st.markdown("###  PICO Extraction")
                 pico = result.get('pico', [])
                 pico_cols = st.columns(3)
-                pico_icons = {"Population": "👥", "Intervention": "💊", "Outcomes": "📈"}
+                pico_icons = {"Population": ":", "Intervention": ":", "Outcomes": ":"}
                 
                 for i, pico_domain in enumerate(["Population", "Intervention", "Outcomes"]):
                     with pico_cols[i]:
@@ -465,7 +468,7 @@ def main():
                             st.caption("_No elements extracted_")
                 
                
-                st.markdown("### ⚖️ Risk of Bias Assessment")
+                st.markdown("### Risk of Bias Assessment")
                 bias = result.get('bias', [])
                 
                 if bias:
@@ -496,7 +499,7 @@ def main():
                     st.dataframe(styled_df, width='stretch', hide_index=True)
                     
                     if show_evidence:
-                        st.markdown("#### 📝 Evidence Sentences")
+                        st.markdown("#### Evidence Sentences")
                         for b in bias:
                             domain = b.get('domain', '')
                             color = BIAS_COLORS.get(domain, (1.0, 0.3, 0.3))
@@ -514,7 +517,7 @@ def main():
                                     st.caption("_No evidence sentences found_")
                 
                
-                st.markdown("#### 📥 Download Highlighted PDFs")
+                st.markdown("#### Download Highlighted PDFs")
                 st.markdown("Generate two separate PDFs: one with Bias highlights, one with PICO highlights.")
                 
                 dl_col1, dl_col2 = st.columns(2)
@@ -530,7 +533,7 @@ def main():
                             bias_pdf = create_bias_highlighted_pdf(result['pdf_bytes'], annotations)
                             
                             st.download_button(
-                                label="📥 Download Bias PDF (Red Spectrum)",
+                                label="Download Bias PDF (Red Spectrum)",
                                 data=bias_pdf,
                                 file_name=f"bias_{result['filename']}",
                                 mime="application/pdf",
@@ -557,16 +560,16 @@ def main():
         
 
         st.markdown("---")
-        st.markdown("## 📤 Export Results")
+        st.markdown("## Export Results")
         exp_col1, exp_col2 = st.columns(2)
         
         with exp_col1:
-            if st.button("📥 Export JSON"):
+            if st.button(" Export JSON"):
                 json_data = export_to_json(results)
                 st.download_button("Download JSON", json_data, f"rct_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", "application/json")
         
         with exp_col2:
-            if st.button("📥 Export CSV"):
+            if st.button(" Export CSV"):
                 csv_data = export_to_csv(results)
                 st.download_button("Download CSV", csv_data, f"rct_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", "text/csv")
 

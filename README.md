@@ -159,7 +159,7 @@ Before you begin, ensure you have the following installed:
 
 ---
 
-## 🛠️ Installation & Usage
+## 🛠️ Installation & Usage 
 
 This repository contains the main model files along with the code required to run RCT-Reviewer. There are three ways to run this application locally:
 
@@ -167,7 +167,7 @@ This repository contains the main model files along with the code required to ru
 2.  **app1.py**: Uses `.pickle`, `.pck`, and `.npz` files (Legacy local storage).
 3.  **app2.py**: Connects to the Hugging Face Hub repository [`Aurumz/RCT-Reviewer`] (No large local files needed).
 
-
+[**Recommended to run app2.py over other .py to run latest version.**]
 
 ### General Setup (Required for all modes)
 
@@ -198,6 +198,7 @@ python -m spacy download en_core_web_sm
 ### Running Specific Modes
 
 Choose one of the following methods to run the app.
+[**Recommended to run app2.py over other .py to run latest version.**]
 
 <details>
 <summary><b>Mode 1: app.py (.joblib Local)</b></summary>
