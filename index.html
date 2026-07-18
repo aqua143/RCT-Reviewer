@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>RCT-Reviewer – Risk of Bias Assessment of RCTs</title>
+    <meta name="description" content="RCT-Reviewer is a modernized, standalone third-party reference tool for Risk of Bias assessment of Randomized Controlled Trials (RCTs). Built on RobotReviewer's ML models trained on 12,808 RCTs with 71% accuracy and 87% precision.">
+    <meta name="keywords" content="RCT-Reviewer, RobotReviewer, Risk of Bias, RoB assessment, systematic review, Cochrane, randomized controlled trials, RCT, automated bias assessment, biomedical NLP, clinical trials, machine learning, SVM classifier, Streamlit, PyMuPDF, spaCy, joblib, pickle, evidence synthesis">
+    <meta name="author" content="aurumz-rgb">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1, max-image-index:large">
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow">
+    <meta name="rating" content="general">
+    <meta name="distribution" content="global">
+    <meta name="revisit-after" content="3 days">
+    <meta name="language" content="English">
+    <meta name="theme-color" content="#161616">
+    <link rel="canonical" href="https://aurumz-rgb.github.io/RCT-Reviewer/">
+    <link rel="alternate" href="https://aurumz-rgb.github.io/RCT-Reviewer/" hreflang="x-default">
+    <link rel="alternate" href="https://aurumz-rgb.github.io/RCT-Reviewer/" hreflang="en">
+
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="RCT-Reviewer – Modernized RobotReviewer for Risk of Bias Assessment">
+    <meta property="og:description" content="A modernized, standalone third-party reference tool for Risk of Bias assessment of RCTs. Achieves 71% accuracy, 87% precision, and 90% recall based on RobotReviewer's models trained on 12,808 clinical trial PDFs.">
+    <meta property="og:image" content="assets/banner_transparent.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="RCT-Reviewer — Modernized RobotReviewer for Risk of Bias assessment of Randomized Controlled Trials">
+    <meta property="og:url" content="https://aurumz-rgb.github.io/RCT-Reviewer/">
+    <meta property="og:site_name" content="RCT-Reviewer">
+    <meta property="og:locale" content="en_US">
+
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RCT-Reviewer – Modernized RobotReviewer for Risk of Bias Assessment">
+    <meta name="twitter:description" content="Modernized standalone RobotReviewer for Risk of Bias assessment of RCTs. 71% accuracy, 87% precision, 90% recall. Trained on 12,808 RCTs.">
+    <meta name="twitter:image" content="assets/banner_transparent.png">
+    <meta name="twitter:image:alt" content="RCT-Reviewer banner — automated Risk of Bias assessment for Randomized Controlled Trials">
+
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "RCT-Reviewer",
+        "alternateName": "RobotReviewer Modernized",
+        "description": "Modernized, standalone third-party reference tool for Risk of Bias assessment of Randomized Controlled Trials (RCTs). Built upon RobotReviewer's machine learning models trained on 12,808 RCT PDFs. Achieves 71.0% accuracy, 87% precision, and 90% recall.",
+        "url": "https://aurumz-rgb.github.io/RCT-Reviewer/",
+        "applicationCategory": "ScienceApplication",
+        "applicationSubCategory": "Biomedical NLP",
+        "operatingSystem": "Any",
+
+
+        "screenshot": "assets/banner_transparent.png",
+        "image": "assets/banner_transparent.png",
+        "author": {
+            "@type": "Person",
+            "name": "aurumz-rgb",
+            "url": "https://github.com/aurumz-rgb"
+        },
+        "publisher": {
+            "@type": "Person",
+            "name": "aurumz-rgb",
+            "url": "https://github.com/aurumz-rgb"
+        },
+        "license": "https://spdx.org/licenses/GPL-3.0-only.html",
+        "isAccessibleForFree": true,
+        "featureList": [
+            "Automated Risk of Bias assessment for Randomized Controlled Trials",
+            "Third-party tiebreaker reference for systematic reviews",
+            "Near-human accuracy (71.0%) within 8% of expert consensus",
+            "87% precision and 90% recall for supporting text extraction",
+            "Modernized Streamlit interface replacing Flask + React",
+            "PyMuPDF native Python PDF parsing (no Java/GROBID required)",
+            "SVM-only pipeline using original RobotReviewer weights",
+            "Hugging Face Hub integration for model distribution",
+            "Python 3.12 compatible",
+            "Open source under GNU GPL v3.0"
+        ],
+        "about": {
+            "@type": "Thing",
+            "name": "Risk of Bias Assessment",
+            "description": "Automated evaluation of bias in Randomized Controlled Trials using machine learning"
+        },
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Systematic Reviewers, Researchers, Cochrane Contributors, Evidence Synthesis Specialists"
+        }
+    }
+    </script>
+
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "RCT-Reviewer",
+        "description": "Modernized, standalone version of RobotReviewer for automated Risk of Bias assessment of Randomized Controlled Trials. Built with Streamlit, PyMuPDF, spaCy, and scikit-learn.",
+        "url": "https://aurumz-rgb.github.io/RCT-Reviewer/",
+        "codeRepository": "https://github.com/aurumz-rgb/RCT-Reviewer",
+        "programmingLanguage": "Python",
+        "runtimePlatform": "Python 3.12",
+        "targetProduct": {
+            "@type": "SoftwareApplication",
+            "name": "RCT-Reviewer",
+            "applicationCategory": "ScienceApplication",
+            "operatingSystem": "Cross-platform"
+        },
+        "license": "https://spdx.org/licenses/GPL-3.0-only.html",
+        "author": {
+            "@type": "Person",
+            "name": "Vihaan Sahu",
+            "url": "https://github.com/aurumz-rgb"
+        },
+        "citation": [
+            {
+                "@type": "CreativeWork",
+                "name": "RobotReviewer: evaluation of a system for automatically assessing bias in clinical trials",
+                "author": ["Marshall IJ", "Kuiper J", "Wallace BC"],
+                "datePublished": "2016",
+                "url": "http://dx.doi.org/10.1093/jamia/ocv044"
+            },
+
+           {
+                "@type": "CreativeWork",
+                "name": "RCT-Reviewer: A Modernized, Standalone Tool for Automated Analysis of Clinical Trials (RCTs)",
+                "author": ["Vihaan Sahu"],
+                "datePublished": "2026",
+                "url": "https://doi.org/10.5281/zenodo.20618338"
+            },
+
+            {
+                "@type": "CreativeWork",
+                "name": "Machine learning to help researchers evaluate biases in clinical trials: a prospective, randomized user study",
+                "author": ["Soboczenski F", "et al."],
+                "datePublished": "2019",
+                "url": "http://dx.doi.org/10.1186/s12911-019-0814-z"
+            },
+            {
+                "@type": "CreativeWork",
+                "name": "Automating risk of bias assessment in systematic reviews: a real-time mixed methods comparison of human researchers to a machine learning system",
+                "author": ["Nussbaumer-Streit B", "et al."],
+                "datePublished": "2022",
+                "url": "http://dx.doi.org/10.1186/s12874-022-01649-y"
+            }
+        ]
+    }
+    </script>
+
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://aurumz-rgb.github.io/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "RCT-Reviewer",
+                "item": "https://aurumz-rgb.github.io/RCT-Reviewer/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Main Website",
+                "item": "https://rct-reviewer.github.io"
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Main GitHub Repository",
+                "item": "https://github.com/aurumz-rgb/RCT-Reviewer"
+            },
+            {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "RCT-Reviewer Online GitHub Repository",
+                "item": "https://github.com/RCT-Reviewer/RCT-Reviewer-Online"
+            },
+            {
+                "@type": "ListItem",
+                "position": 6,
+                "name": "Hugging Face Models (.joblib)",
+                "item": "https://huggingface.co/Aurumz/RCT-Reviewer"
+            },
+            {
+                "@type": "ListItem",
+                "position": 7,
+                "name": "Hugging Face Models (.pickle, .pck)",
+                "item": "https://huggingface.co/Aurumz/RCT-Reviewer-pickle"
+            },
+            {
+                "@type": "ListItem",
+                "position": 8,
+                "name": "Use RCT-Reviewer Online",
+                "item": "https://rct-reviewer.streamlit.app"
+            }
+        ]
+    }
+    </script>
+
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is RCT-Reviewer and how does it relate to RobotReviewer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "RCT-Reviewer is a modernized, standalone version of the original RobotReviewer developed by Marshall, Kuiper, and Wallace. It preserves the original machine learning models trained on 12,808 randomized controlled trial PDFs while modernizing the infrastructure with Streamlit, PyMuPDF, and Python 3.12 compatibility. It is designed as a third-party tiebreaker reference tool for systematic reviews."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How accurate is RCT-Reviewer for Risk of Bias assessment?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "RCT-Reviewer achieves 71.0% accuracy for Risk of Bias judgments, performing within 8% of human expert consensus (which stands at 78.3%). In a randomized Cochrane user trial, the models demonstrated 87% precision and 90% recall for identifying the exact text snippets supporting each bias judgment."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Why was the CNN model removed in favor of an SVM-only pipeline?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CNN models were removed because they depend on TensorFlow/Keras .h5 files which break on Python 3.11 and 3.12. The Linear SVM model already contains the full predictive signal with negligible accuracy loss of 0 to 2 percent, is faster, and ensures reproducibility across all systems."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Do I need Java or GROBID to run RCT-Reviewer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. Unlike the original RobotReviewer which required GROBID and Java, RCT-Reviewer uses PyMuPDF (fitz) for native Python PDF parsing and spaCy for sentence segmentation. This eliminates the Java and Docker dependencies entirely."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What are the different ways to run RCT-Reviewer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "There are three modes. app.py uses compressed .joblib and .npz files for modernized local storage. app1.py uses legacy .pickle, .pck, and .npz files. app2.py connects directly to the Hugging Face Hub repository Aurumz/RCT-Reviewer without requiring large local files. The recommended mode is app2.py for the latest version."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is RCT-Reviewer free and open source?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, RCT-Reviewer is completely free and open source under the GNU General Public License v3.0. It is a derivative work of RobotReviewer and the source code is available on GitHub at github.com/aurumz-rgb/RCT-Reviewer."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can RCT-Reviewer replace human reviewers in systematic reviews?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. RCT-Reviewer is designed as a third-party tiebreaker reference. Standard systematic review guidelines require two independent human reviewers. When they disagree, RCT-Reviewer provides an instant, objective, data-driven third opinion to help resolve ties. Real-world feasibility studies show human reviewers accept the tool's judgments at a rate equal to that of their human peers."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Where can I download the RCT-Reviewer model files?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The default RCT-Reviewer model files in .joblib format are available on Hugging Face at huggingface.co/Aurumz/RCT-Reviewer. The legacy .pickle and .pck model files are available at huggingface.co/Aurumz/RCT-Reviewer-pickle. For running without large downloads, use app2.py which fetches models directly from the Hugging Face Hub."
+                }
+            }
+        ]
+    }
+    </script>
+
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "RCT-Reviewer Trained Machine Learning Models",
+        "description": "Machine learning model weights trained on 12,808 randomized controlled trial PDFs for Risk of Bias assessment, including document-level and sentence-level classifiers, PICO extractors, and RCT classifiers. Available in both .joblib and .pickle formats.",
+        "url": "https://huggingface.co/Aurumz/RCT-Reviewer",
+        "creator": {
+            "@type": "Person",
+            "name": "Vihaan Sahu"
+        },
+        "license": "https://spdx.org/licenses/GPL-3.0-only.html",
+        "isAccessibleForFree": true,
+        "keywords": ["Risk of Bias", "RCT", "Machine Learning", "SVM", "RobotReviewer", "Clinical Trials"],
+        "distribution": [
+            {
+                "@type": "DataDownload",
+                "name": "RCT-Reviewer Joblib Models",
+                "encodingFormat": "application/octet-stream",
+                "contentUrl": "https://huggingface.co/Aurumz/RCT-Reviewer"
+            },
+            {
+                "@type": "DataDownload",
+                "name": "RCT-Reviewer Pickle Models",
+                "encodingFormat": "application/octet-stream",
+                "contentUrl": "https://huggingface.co/Aurumz/RCT-Reviewer-pickle"
+            }
+        ]
+    }
+    </script>
+
+
+    <link rel="preload" as="image" href="assets/banner_transparent.png" fetchpriority="high">
+
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <div class="app-container">
+
+
+        <header class="app-header">
+            <figure class="banner-figure banner-figure--hero">
+                <img
+                    src="assets/banner_transparent.png"
+                    alt="RCT-Reviewer — Modernized RobotReviewer for automated Risk of Bias assessment of Randomized Controlled Trials"
+                    title="RCT-Reviewer"
+                    width="730"
+                    height="340"
+                    class="banner-image"
+                    fetchpriority="high"
+                >
+            </figure>
+
+
+            <div class="badge-row">
+<a href="https://www.python.org/" rel="noopener" target="_blank" aria-label="Python 3.12">
+    <img src="https://img.shields.io/badge/python-3.12-blue" alt="Python 3.12" width="90" height="20">
+</a>
+
+
+<a href="https://www.gnu.org/licenses/gpl-3.0.en.html" rel="noopener" target="_blank" aria-label="GPL v3.0 License">
+    <img src="https://img.shields.io/badge/license-GPL%20v3.0-blue" alt="GPL v3.0 License" width="110" height="20">
+</a>
+
+<a href="https://doi.org/10.5281/zenodo.20618338" rel="noopener" target="_blank" aria-label="View DOI on Zenodo">
+    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20618338.svg" alt="DOI" width="90" height="20">
+</a>
+
+<a href="https://github.com/aurumz-rgb/RCT-Reviewer/releases" rel="noopener" target="_blank" aria-label="Latest release version">
+    <img src="https://img.shields.io/badge/version-v2.0-8A2BE2" alt="Version v2.0" width="105" height="20">
+</a>
+
+
+
+<a href="https://github.com/RCT-Reviewer/RCT-Reviewer-Online/actions/workflows/ci.yml" rel="noopener" target="_blank" aria-label="View CI workflow status">
+    <img src="https://github.com/RCT-Reviewer/RCT-Reviewer-Online/actions/workflows/ci.yml/badge.svg" alt="CI status" width="120" height="20">
+</a>
+
+<a href="https://github.com/aurumz-rgb/RCT-Reviewer" rel="noopener" target="_blank" aria-label="Open Source Project">
+    <img src="https://badges.frapsoft.com/os/v1/open-source.svg?v=103" alt="Open Source Love" width="120" height="20">
+</a>
+
+            </div>
+
+            <p class="app-description">
+                <strong>RCT-Reviewer</strong> is a modernized, standalone version of <a href="https://github.com/ijmarshall/robotreviewer" target="_blank" rel="noopener">RobotReviewer</a>, designed as a third-party reference tool for <strong>Risk of Bias assessment</strong>. It builds upon RobotReviewer's original machine learning models trained on <strong>12,808 randomized controlled trials (RCTs)</strong>.
+            </p>
+
+
+            <div class="cta-group">
+                <a href="https://rct-reviewer.github.io" class="cta-btn cta-btn--primary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M9 2L2 7v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1V7L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    Main Website
+                </a>
+                <a href="https://github.com/aurumz-rgb/RCT-Reviewer" class="cta-btn cta-btn--secondary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M9 1.5C4.86 1.5 1.5 4.86 1.5 9c0 3.32 2.15 6.13 5.14 7.12.37.07.51-.16.51-.36v-1.26c-2.09.45-2.53-1.01-2.53-1.01-.34-.87-.84-1.1-.84-1.1-.69-.47.05-.46.05-.46.76.05 1.16.78 1.16.78.68 1.16 1.78.83 2.21.63.07-.49.26-.83.48-1.02-1.69-.19-3.47-.85-3.47-3.77 0-.83.3-1.51.79-2.04-.08-.19-.34-.97.07-2.03 0 0 .64-.21 2.11.79a7.28 7.28 0 013.84 0c1.47-1 2.11-.79 2.11-.79.42 1.06.15 1.84.08 2.03.49.53.79 1.21.79 2.04 0 2.93-1.78 3.58-3.48 3.77.27.24.52.7.52 1.42v2.1c0 .2.13.43.51.36A7.5 7.5 0 0016.5 9c0-4.14-3.36-7.5-7.5-7.5z" fill="currentColor"/>
+                    </svg>
+                    Main GitHub Repository
+                </a>
+                <a href="https://github.com/RCT-Reviewer/RCT-Reviewer-Online" class="cta-btn cta-btn--secondary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M9 1.5C4.86 1.5 1.5 4.86 1.5 9c0 3.32 2.15 6.13 5.14 7.12.37.07.51-.16.51-.36v-1.26c-2.09.45-2.53-1.01-2.53-1.01-.34-.87-.84-1.1-.84-1.1-.69-.47.05-.46.05-.46.76.05 1.16.78 1.16.78.68 1.16 1.78.83 2.21.63.07-.49.26-.83.48-1.02-1.69-.19-3.47-.85-3.47-3.77 0-.83.3-1.51.79-2.04-.08-.19-.34-.97.07-2.03 0 0 .64-.21 2.11.79a7.28 7.28 0 013.84 0c1.47-1 2.11-.79 2.11-.79.42 1.06.15 1.84.08 2.03.49.53.79 1.21.79 2.04 0 2.93-1.78 3.58-3.48 3.77.27.24.52.7.52 1.42v2.1c0 .2.13.43.51.36A7.5 7.5 0 0016.5 9c0-4.14-3.36-7.5-7.5-7.5z" fill="currentColor"/>
+                    </svg>
+                    RCT-Reviewer Online GitHub Repository
+                </a>
+                <a href="https://huggingface.co/Aurumz/RCT-Reviewer" class="cta-btn cta-btn--secondary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M3 2.5h12v13H3v-13zm2 3v2h8v-2H5zm0 4v2h8v-2H5zm0 4v1h5v-1H5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    Default RCT-Reviewer HF Models (.joblib)
+                </a>
+                <a href="https://huggingface.co/Aurumz/RCT-Reviewer-pickle" class="cta-btn cta-btn--secondary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M3 2.5h12v13H3v-13zm2 3v2h8v-2H5zm0 4v2h8v-2H5zm0 4v1h5v-1H5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    RCT-Reviewer HF Models (.pickle, .pck)
+                </a>
+                <a href="https://rct-reviewer.streamlit.app" class="cta-btn cta-btn--primary" rel="noopener" target="_blank">
+                    <svg class="cta-btn__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                        <path d="M14 4h6v6m0-6L10 14M6 6h6M6 6v12h12v-6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Use RCT-Reviewer Online
+                </a>
+            </div>
+        </header>
+
+
+        <main id="main">
+
+            <section id="why-use" aria-labelledby="why-heading">
+                <h2 id="why-heading" class="section-heading">Why Use RCT-Reviewer?</h2>
+                <p class="qs-intro">RCT-Reviewer is designed as a <strong>third-party tiebreaker reference</strong> for systematic reviews. Standard guidelines require two independent human reviewers; when they disagree, this tool provides an instant, objective, and data-driven third opinion to resolve ties.</p>
+                <ol class="steps-list">
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">1</span>
+                        <div class="step-item__content">
+                            <h3 class="step-item__title">Near-Human Accuracy</h3>
+                            <p class="step-item__text">The system achieves <strong>71.0% accuracy</strong> for Risk of Bias judgments, performing within <strong>&lt;8% of human expert consensus</strong> (which stands at 78.3%) [1].</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">2</span>
+                        <div class="step-item__content">
+                            <h3 class="step-item__title">Highly Precise Extraction</h3>
+                            <p class="step-item__text">In a randomized Cochrane user trial, the models demonstrated <strong>87% Precision</strong> and <strong>90% Recall</strong> for identifying the exact text snippets supporting the bias judgment [2].</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">3</span>
+                        <div class="step-item__content">
+                            <h3 class="step-item__title">Validated Acceptance</h3>
+                            <p class="step-item__text">Real-world feasibility studies show that human reviewers accept the tool's judgments at a rate equal to that of their human peers (Risk Ratio 1.02) [3].</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">4</span>
+                        <div class="step-item__content">
+                            <h3 class="step-item__title">Rigorous Methodology</h3>
+                            <p class="step-item__text">Developed by Marshall, Kuiper, and Wallace, the models were trained on <strong>12,808 clinical trial PDFs</strong> using "distant supervision" to ensure high-quality classification without prohibitive manual labeling costs [1,4].</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="architecture" aria-labelledby="arch-heading">
+                <h2 id="arch-heading" class="section-heading">Architecture &amp; Models</h2>
+                <p class="qs-intro">This project preserves the machine learning core of the original RobotReviewer while modernizing the infrastructure.</p>
+
+                <div class="code-block">
+                    <pre><code># The ML Pipeline
+1. PDF Parsing:     PyMuPDF (fitz) + spaCy sentence segmentation
+                   (No Java/GROBID dependency required)
+
+2. Feature Extract: HashingVectorizer (scikit-learn)
+                   converts text into high-dimensional sparse matrices
+
+3. Classification:  MiniClassifier (lightweight Linear SVM wrapper)
+                   loads pre-trained .npz weights
+
+# SVM-Only Pipeline:
+# CNN models removed due to TensorFlow compatibility issues
+# on Python 3.11-3.12. Not required for accurate predictions.</code></pre>
+                </div>
+                <p class="qs-note">Model Redistribution Note: This repository contains joblib-converted model artifacts originally developed in RobotReviewer. The old pickle model files were compressed and redistributed into <code>.joblib</code> format using <code>convert_models.py</code> for better compatibility and smaller file sizes.</p>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="quick-start" aria-labelledby="qs-heading">
+                <h2 id="qs-heading" class="section-heading">Quick Start — Running RCT-Reviewer</h2>
+                <p class="qs-intro">Clone, install, and run the recommended mode (Hugging Face Hub):</p>
+                <div class="code-block">
+                    <pre><code># Clone the repository
+git clone https://github.com/aurumz-rgb/RCT-Reviewer.git
+cd RCT-Reviewer
+
+# Create and activate virtual environment
+python3.12 -m venv .venv
+source .venv/bin/activate        # Linux/macOS
+.venv\Scripts\activate           # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+
+# Run app2.py — Hugging Face Hub mode (recommended, no LFS required)
+python -m streamlit run rct_reviewer/app2.py</code></pre>
+                </div>
+                <p class="qs-note">Other modes: <code>app.py</code> uses local <code>.joblib</code> files (requires <code>git lfs pull</code>); <code>app1.py</code> uses legacy <code>.pickle</code>/<code>.pck</code> files (requires <code>git lfs pull</code>).</p>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="differences" aria-labelledby="diff-heading">
+                <h2 id="diff-heading" class="section-heading">Differences from Original RobotReviewer</h2>
+                <div class="code-block" style="background: var(--bg-secondary); padding: 0; border: 1px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0;">
+                        <thead>
+                            <tr style="background: var(--bg-tertiary);">
+                                <th style="padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600;">Feature</th>
+                                <th style="padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600;">Original RobotReviewer (2017)</th>
+                                <th style="padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600;">RCT-Reviewer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Interface</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Flask + React</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>Streamlit</strong> (Pure Python)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">PDF Parsing</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">GROBID (Requires Java/Docker)</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>PyMuPDF</strong> (Native Python)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Task Queue</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Celery + RabbitMQ</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>Synchronous</strong> (Local execution)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Data Models</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">MultiDict</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>Pydantic</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Deployment</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Docker Compose</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>Local Streamlit Run</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">ML Core</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">SVM / CNN</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);"><strong>Same Weights</strong> (SVM prioritized)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Expected Accuracy Difference After CNN Removal</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Baseline reference</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Estimated negligible reduction (~0–2%)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Core Purpose</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Automated Risk of Bias assessment for RCTs</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Modernized standalone implementation for automated Risk of Bias assessment</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Underlying ML Research</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Original ML models trained on 12,808 RCT PDFs</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Preserves the same trained ML models and weights</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Risk of Bias Accuracy</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">~71.0% agreement accuracy vs expert consensus</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Same expected predictive accuracy because the same SVM weights are used</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Supporting Text Precision</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">~87% precision for rationale extraction</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Same extraction models retained</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Supporting Text Recall</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">~90% recall</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Same extraction models retained</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text); font-weight: 600;">Model Storage</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Pickle / HDF5 / NPZ</td>
+                                <td style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Joblib / NPZ / legacy compatibility modes</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem 1rem; color: var(--text); font-weight: 600;">Compatibility</td>
+                                <td style="padding: 0.75rem 1rem; color: var(--text-muted);">Compatible with Python 3.6</td>
+                                <td style="padding: 0.75rem 1rem; color: var(--text-muted);">Modernized for Python 3.12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 class="step-item__title" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Note on SVM vs CNN</h3>
+                <p class="step-item__text">This project uses a <strong>Linear SVM-only pipeline</strong> instead of the original SVM + CNN ensemble. CNN models were removed because they depend on TensorFlow/Keras <code>.h5</code> files which break on Python 3.11–3.12. The SVM model already contains the full predictive signal with negligible accuracy loss (~0–2%), is faster, and ensures reproducibility across all systems.</p>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="file-structure" aria-labelledby="fs-heading">
+                <h2 id="fs-heading" class="section-heading">Project File Structure</h2>
+                <div class="code-block">
+                    <pre><code>RCT-Reviewer/
+├── .dockerignore
+├── .gitattributes
+├── .gitignore
+├── .zenodo.json
+├── INFO.md
+├── LICENSE.txt
+├── README.md
+├── convert_models.py
+├── requirements.txt
+│
+├── data/
+│   ├── bias/
+│   │   ├── bias_doc_level.npz
+│   │   ├── bias_sent_level.npz
+│   │   ├── bias_ab.npz
+│   │   ├── bias_prob_clf.pck
+│   │   ├── domain_clf.pck
+│   │   ├── overall_clf.pck
+│   │   ├── drugbank.pck
+│   │   └── humans/   (AC, BOA, BPP, RSG — .hdf5/.json/.pickle)
+│   ├── pico/         (I/O/P _idf.npz, _model.npz)
+│   ├── rct/          (rct_svm_weights.npz + CNN artifacts retained, unused)
+│   └── vocab/        (embeddings.200d.trimmed.npz)
+│
+└── rct_reviewer/
+    ├── __init__.py
+    ├── app.py        (Joblib Mode)
+    ├── app1.py       (Pickle Mode)
+    ├── app2.py       (HF Hub Mode — default)
+    ├── config.py
+    ├── processors/   (bias_robot, pico_robot, rct_robot)
+    └── ui/           (streamlit components)</code></pre>
+                </div>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="troubleshooting" aria-labelledby="ts-heading">
+                <h2 id="ts-heading" class="section-heading">Troubleshooting</h2>
+                <div class="faq-list">
+                    <details class="faq-item">
+                        <summary class="faq-item__question">FileNotFoundError: data/pico/P_model.npz</summary>
+                        <div class="faq-item__answer">
+                            <p>You likely skipped the Git LFS step. Run <code>git lfs pull</code> to download the actual model weights (only required for <code>app.py</code> and <code>app1.py</code>).</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary class="faq-item__question">ModuleNotFoundError: No module named 'rct_reviewer'</summary>
+                        <div class="faq-item__answer">
+                            <p>Ensure you are running the command from the root directory, or set your <code>PYTHONPATH</code>:<br>
+                            <code>export PYTHONPATH=$PYTHONPATH:$(pwd)</code></p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Can't find model 'en_core_web_sm'</summary>
+                        <div class="faq-item__answer">
+                            <p>You forgot to download the spaCy model. Run:<br>
+                            <code>python -m spacy download en_core_web_sm</code></p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="references" aria-labelledby="ref-heading">
+                <h2 id="ref-heading" class="section-heading">References</h2>
+                <ol class="steps-list">
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">[1]</span>
+                        <div class="step-item__content">
+                            <p class="step-item__text">Marshall IJ, Kuiper J, Wallace BC. RobotReviewer: evaluation of a system for automatically assessing bias in clinical trials. <em>Journal of the American Medical Informatics Association</em>. 2016;23(1):193-201. <a href="http://dx.doi.org/10.1093/jamia/ocv044" target="_blank" rel="noopener">doi</a></p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">[2]</span>
+                        <div class="step-item__content">
+                            <p class="step-item__text">Soboczenski F, et al. Machine learning to help researchers evaluate biases in clinical trials: a prospective, randomized user study. <em>BMC Medical Informatics and Decision Making</em>. 2019;19(1):96. <a href="http://dx.doi.org/10.1186/s12911-019-0814-z" target="_blank" rel="noopener">doi</a></p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">[3]</span>
+                        <div class="step-item__content">
+                            <p class="step-item__text">Nussbaumer-Streit B, et al. Automating risk of bias assessment in systematic reviews: a real-time mixed methods comparison of human researchers to a machine learning system. <em>BMC Medical Research Methodology</em>. 2022;22:160. <a href="http://dx.doi.org/10.1186/s12874-022-01649-y" target="_blank" rel="noopener">doi</a></p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-item__number" aria-hidden="true">[4]</span>
+                        <div class="step-item__content">
+                            <p class="step-item__text">Marshall I, Kuiper J, Wallace B. Automating Risk of Bias Assessment for Clinical Trials. <em>IEEE Journal of Biomedical and Health Informatics</em>. 2015;19(4):1406-1412. <a href="http://dx.doi.org/10.1109/JBHI.2015.2431314" target="_blank" rel="noopener">doi</a></p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="faq" aria-labelledby="faq-heading">
+                <h2 id="faq-heading" class="section-heading">Frequently Asked Questions</h2>
+
+                <div class="faq-list">
+                    <details class="faq-item">
+                        <summary class="faq-item__question">What is RCT-Reviewer and how does it relate to RobotReviewer?</summary>
+                        <div class="faq-item__answer">
+                            <p>RCT-Reviewer is a modernized, standalone version of the original <a href="https://github.com/ijmarshall/robotreviewer" target="_blank" rel="noopener">RobotReviewer</a> developed by Marshall, Kuiper, and Wallace. It preserves the original machine learning models trained on 12,808 randomized controlled trial PDFs while modernizing the infrastructure with Streamlit, PyMuPDF, and Python 3.12 compatibility. It is designed as a third-party tiebreaker reference tool for systematic reviews.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">How accurate is RCT-Reviewer for Risk of Bias assessment?</summary>
+                        <div class="faq-item__answer">
+                            <p>RCT-Reviewer achieves <strong>71.0% accuracy</strong> for Risk of Bias judgments, performing within 8% of human expert consensus (which stands at 78.3%). In a randomized Cochrane user trial, the models demonstrated <strong>87% precision</strong> and <strong>90% recall</strong> for identifying the exact text snippets supporting each bias judgment.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Why was the CNN model removed in favor of an SVM-only pipeline?</summary>
+                        <div class="faq-item__answer">
+                            <p>CNN models were removed because they depend on TensorFlow/Keras <code>.h5</code> files which break on Python 3.11 and 3.12. The Linear SVM model already contains the full predictive signal with negligible accuracy loss of 0 to 2 percent, is faster, and ensures reproducibility across all systems.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Do I need Java or GROBID to run RCT-Reviewer?</summary>
+                        <div class="faq-item__answer">
+                            <p>No. Unlike the original RobotReviewer which required GROBID and Java, RCT-Reviewer uses <strong>PyMuPDF (fitz)</strong> for native Python PDF parsing and <strong>spaCy</strong> for sentence segmentation. This eliminates the Java and Docker dependencies entirely.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">What are the different ways to run RCT-Reviewer?</summary>
+                        <div class="faq-item__answer">
+                            <p>There are three modes. <code>app.py</code> uses compressed <code>.joblib</code> and <code>.npz</code> files for modernized local storage. <code>app1.py</code> uses legacy <code>.pickle</code>, <code>.pck</code>, and <code>.npz</code> files. <code>app2.py</code> connects directly to the Hugging Face Hub repository <code>Aurumz/RCT-Reviewer</code> without requiring large local files. The recommended mode is <code>app2.py</code> for the latest version.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Is RCT-Reviewer free and open source?</summary>
+                        <div class="faq-item__answer">
+                            <p>Yes, RCT-Reviewer is completely free and open source under the <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank" rel="noopener">GNU General Public License v3.0</a>. It is a derivative work of RobotReviewer and the source code is available on <a href="https://github.com/aurumz-rgb/RCT-Reviewer" target="_blank" rel="noopener">GitHub</a>.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Can RCT-Reviewer replace human reviewers in systematic reviews?</summary>
+                        <div class="faq-item__answer">
+                            <p>No. RCT-Reviewer is designed as a <strong>third-party tiebreaker reference</strong>. Standard systematic review guidelines require two independent human reviewers. When they disagree, RCT-Reviewer provides an instant, objective, data-driven third opinion to help resolve ties. Real-world feasibility studies show human reviewers accept the tool's judgments at a rate equal to that of their human peers.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Where can I download the RCT-Reviewer model files?</summary>
+                        <div class="faq-item__answer">
+                            <p>The default RCT-Reviewer model files in <code>.joblib</code> format are available on Hugging Face at <a href="https://huggingface.co/Aurumz/RCT-Reviewer" target="_blank" rel="noopener">huggingface.co/Aurumz/RCT-Reviewer</a>. The legacy <code>.pickle</code> and <code>.pck</code> model files are available at <a href="https://huggingface.co/Aurumz/RCT-Reviewer-pickle" target="_blank" rel="noopener">huggingface.co/Aurumz/RCT-Reviewer-pickle</a>. For running without large downloads, use <code>app2.py</code> which fetches models directly from the Hugging Face Hub.</p>
+                        </div>
+                    </details>
+
+                    <details class="faq-item">
+                        <summary class="faq-item__question">Is my uploaded PDF data safe?</summary>
+                        <div class="faq-item__answer">
+                            <p>If you self-host RCT-Reviewer locally, all processing happens entirely on your machine — no data leaves your system. The hosted online version at <a href="https://rct-reviewer.streamlit.app" target="_blank" rel="noopener">rct-reviewer.streamlit.app</a> processes PDFs in-memory and does not permanently store uploaded files.</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <hr class="divider" role="separator">
+
+
+            <section id="citation" aria-labelledby="cite-heading">
+                <h2 id="cite-heading" class="section-heading">Citation</h2>
+                <p class="qs-intro">If you use this software in your research, please cite both RCT-Reviewer and the original RobotReviewer paper.</p>
+                
+                <p class="qs-note" style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text);">RCT-Reviewer:</p>
+                <div class="code-block">
+                    <pre><code>Sahu, V. (2026). RCT-Reviewer: A Modernized, Standalone Tool for
+Automated Analysis of Clinical Trials (RCTs). Zenodo.
+https://doi.org/10.5281/zenodo.20618338
+
+@software{RCT-Reviewer,
+  author    = {Sahu, V.},
+  title     = {RCT-Reviewer: A Modernized, Standalone Tool for
+               Automated Analysis of Clinical Trials (RCTs)},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.20618338},
+  url       = {https://doi.org/10.5281/zenodo.20618338}
+}</code></pre>
+                </div>
+
+                <p class="qs-note" style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text);">Original RobotReviewer:</p>
+                <div class="code-block">
+                    <pre><code>Marshall IJ, Kuiper J, Banner E, Wallace BC. “Automating Biomedical 
+Evidence Synthesis: RobotReviewer.” Proceedings of the Conference 
+of the Association for Computational Linguistics (ACL). 
+2017 (July): 7–12.
+
+@article{RobotReviewer2017,
+  title    = "Automating Biomedical Evidence Synthesis: {RobotReviewer}",
+  author   = "Marshall, Iain J and Kuiper, Jo{\"e}l and Banner, Edward and Wallace, Byron C",
+  journal  = "Proceedings of the Conference of the Association for Computational Linguistics (ACL)",
+  volume   = 2017,
+  pages    = "7--12",
+  month    = jul,
+  year     = 2017,
+}</code></pre>
+                </div>
+            </section>
+
+
+
+
+        </main>
+
+
+        <footer class="app-footer">
+            <nav class="footer-links" aria-label="Footer navigation">
+                <a href="https://rct-reviewer.github.io" target="_blank" rel="noopener">Main Website</a>
+                <a href="https://github.com/aurumz-rgb/RCT-Reviewer" target="_blank" rel="noopener">Main GitHub Repository</a>
+                <a href="https://github.com/RCT-Reviewer/RCT-Reviewer-Online" target="_blank" rel="noopener">Online Repository</a>
+                <a href="https://huggingface.co/Aurumz/RCT-Reviewer" target="_blank" rel="noopener">HF Models (.joblib)</a>
+                <a href="https://huggingface.co/Aurumz/RCT-Reviewer-pickle" target="_blank" rel="noopener">HF Models (.pickle)</a>
+                <a href="https://rct-reviewer.streamlit.app" target="_blank" rel="noopener">Use Online</a>
+                <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank" rel="noopener">GPL-3.0 License</a>
+                <a href="https://doi.org/10.5281/zenodo.20618338" target="_blank" rel="noopener">DOI</a>
+            </nav>
+            <p>&copy; Vihaan Sahu 2026     - RCT-Reviewer is a derivative work of RobotReviewer under GNU GPL v3.0.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
