@@ -1,3 +1,4 @@
+
 {
   "title": "RCT-Reviewer: A Modernized, Standalone Tool for Automated Analysis of Clinical Trials (RCTs)",
   "upload_type": "software",
@@ -11,8 +12,8 @@
     "RCT",
     "RobotReviewer",
     "Clinical Trials",
-    "Risk of Bias",
     "Automated Synthesis",
+    "Risk of Bias",
     "Systematic Review",
     "Machine Learning",
     "NLP",
@@ -24,47 +25,13 @@
   ],
   "license": "GPL-3.0",
   "related_identifiers": [
-    {
-      "identifier": "https://rct-reviewer.github.io",
+       {
       "relation": "isSupplementTo",
-      "scheme": "url",
-      "resource_type": "other"
+      "identifier": "https://github.com/aurumz-rgb/RCT-Reviewer"
     },
     {
-      "identifier": "https://github.com/aurumz-rgb/RCT-Reviewer",
-      "relation": "isSourceOf",
-      "scheme": "url",
-      "resource_type": "software"
-    },
-    {
-      "identifier": "https://github.com/ijmarshall/robotreviewer",
       "relation": "isDerivedFrom",
-      "scheme": "url",
-      "resource_type": "software"
-    },
-    {
-      "identifier": "https://github.com/RCT-Reviewer/RCT-Reviewer-Online",
-      "relation": "isSupplementTo",
-      "scheme": "url",
-      "resource_type": "software"
-    },
-    {
-      "identifier": "https://huggingface.co/Aurumz/RCT-Reviewer",
-      "relation": "isSupplementTo",
-      "scheme": "url",
-      "resource_type": "dataset"
-    },
-    {
-      "identifier": "https://huggingface.co/Aurumz/RCT-Reviewer-pickle",
-      "relation": "isSupplementTo",
-      "scheme": "url",
-      "resource_type": "dataset"
-    },
-    {
-      "identifier": "https://rct-reviewer.streamlit.app",
-      "relation": "isSupplementTo",
-      "scheme": "url",
-      "resource_type": "other"
+      "identifier": "https://github.com/ijmarshall/robotreviewer"
     }
   ],
   "version": "3.0"
