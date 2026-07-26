@@ -31,7 +31,6 @@ RCT-Reviewer is designed as a **Third-Party Tiebreaker Reference** for systemati
 *   **Rigorous Methodology**: Developed by Marshall, Kuiper, and Wallace, the models were trained on **12,808 clinical trial PDFs** using "distant supervision" to ensure high-quality classification without prohibitive manual labeling costs [1,4].
 
 
-
 ---
 
 
