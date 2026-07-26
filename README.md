@@ -1,5 +1,7 @@
 
-![banner](assets/banner_transparent.png)
+<p align="center">
+  <img src="assets/banner_transparent.png" alt="Banner" width="650">
+</p>
 
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![Streamlit](https://img.shields.io/badge/UI-Streamlit-red)
