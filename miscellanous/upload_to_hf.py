@@ -1,6 +1,6 @@
 # V.S.
 
-
+# If you want to use this, use it after putting this in the /root 
 
 from huggingface_hub import HfApi
 from pathlib import Path
