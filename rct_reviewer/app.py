@@ -205,7 +205,7 @@ def create_bias_highlighted_pdf(pdf_bytes, annotations):
 
 
 def create_pico_highlighted_pdf(pdf_bytes, annotations):
-    """Create PDF with ONLY PICO highlights using distinct styles."""
+    """Create PDF with ONLY PIO highlights using distinct styles."""
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
     
@@ -231,7 +231,7 @@ def create_pico_highlighted_pdf(pdf_bytes, annotations):
         )
         page.draw_line(fitz.Point(0, 22), fitz.Point(rect.width, 22), color=(0.8, 0.8, 0.8), width=1)
         
-        page.insert_text(fitz.Point(10, 40), "PICO HIGHLIGHTS (Distinct Styles):", fontsize=8, color=(0.3, 0.3, 0.3), fontname="helv")
+        page.insert_text(fitz.Point(10, 40), "PIO HIGHLIGHTS (Distinct Styles):", fontsize=8, color=(0.3, 0.3, 0.3), fontname="helv")
         
        
         pico_legend = [
@@ -340,7 +340,7 @@ def main():
     
     st.title("RCT-Reviewer")
     st.markdown("""
-    **Automatic extraction of PICO data and Risk of Bias assessment from clinical trial reports.**
+    **Automatic extraction of PIO data and Risk of Bias assessment from clinical trial reports.**
     
     Based on [RobotReviewer](https://github.com/ijmarshall/robotreviewer) by Marshall, Kuiper & Wallace (2017).
     """)
@@ -365,7 +365,7 @@ def main():
         st.markdown("- <span style='background-color:#800000;padding:2px 6px;border-radius:3px;color:white;'>Maroon</span> - Selective Reporting", unsafe_allow_html=True)
         
         st.markdown("")
-        st.markdown("**PICO (Warm Tones):**")
+        st.markdown("**PIO (Warm Tones):**")
         st.markdown("- <span style='background-color:#FFD700;padding:2px 6px;border-radius:3px;'>Gold</span> - Population", unsafe_allow_html=True)
         st.markdown("- <span style='background-color:#FF9933;padding:2px 6px;border-radius:3px;'>Orange</span> - Intervention", unsafe_allow_html=True)
         st.markdown("- <span style='background-color:#FF7F50;padding:2px 6px;border-radius:3px;'>Coral</span> - Outcomes", unsafe_allow_html=True)
@@ -455,7 +455,7 @@ def main():
                     st.metric("Model", rct.get('model', 'SVM'))
                 
          
-                st.markdown("###  PICO Extraction")
+                st.markdown("###  PIO Extraction")
                 pico = result.get('pico', [])
                 pico_cols = st.columns(3)
                 pico_icons = {"Population": ":", "Intervention": ":", "Outcomes": ":"}
@@ -521,7 +521,7 @@ def main():
                 
                
                 st.markdown("#### Download Highlighted PDFs")
-                st.markdown("Generate two separate PDFs: one with Bias highlights, one with PICO highlights.")
+                st.markdown("Generate two separate PDFs: one with Bias highlights, one with PIO highlights.")
                 
                 dl_col1, dl_col2 = st.columns(2)
                 
@@ -544,8 +544,8 @@ def main():
                             )
                 
                 with dl_col2:
-                    if st.button("🟡 Generate PICO PDF", key=f"pico_pdf_{result['filename']}"):
-                        with st.spinner("Creating PICO-highlighted PDF..."):
+                    if st.button("🟡 Generate PIO PDF", key=f"pico_pdf_{result['filename']}"):
+                        with st.spinner("Creating PIO-highlighted PDF..."):
                             annotations = []
                             for p in result.get('pico', []):
                                 for text in p.get('text', []):
@@ -554,7 +554,7 @@ def main():
                             pico_pdf = create_pico_highlighted_pdf(result['pdf_bytes'], annotations)
                             
                             st.download_button(
-                                label="📥 Download PICO PDF (Warm Colors)",
+                                label="📥 Download PIO PDF (Warm Colors)",
                                 data=pico_pdf,
                                 file_name=f"pico_{result['filename']}",
                                 mime="application/pdf",
