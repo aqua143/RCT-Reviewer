@@ -1,4 +1,3 @@
-
 # Contributing to RCT-Reviewer
 
 First off, thank you for taking the time to contribute to **RCT-Reviewer**! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -82,3 +81,7 @@ Please try to maintain the existing project structure:
 Please make sure you do not commit model data files in pull requests!
 
 Thank you again for your contribution! ❤️
+
+<a href="https://github.com/aurumz-rgb/RCT-Reviewer/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=aurumz-rgb/RCT-Reviewer" />
+</a>
