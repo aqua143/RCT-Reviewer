@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "RCT-Reviewer"
-version: "3.0"
+version: "3.1"
 type: software
 
 authors:
@@ -9,7 +9,7 @@ authors:
     given-names: "Vihaan"
 
 doi: "10.5281/zenodo.20618338"
-date-released: 2026-07-22
+date-released: 2026
 
 repository-code: "https://github.com/aurumz-rgb/RCT-Reviewer"
 

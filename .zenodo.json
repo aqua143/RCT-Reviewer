@@ -2,7 +2,7 @@
 {
   "title": "RCT-Reviewer: A Modernized, Standalone Tool for Automated Analysis of Clinical Trials (RCTs)",
   "upload_type": "software",
-  "description": "RCT-Reviewer is a modernized, standalone successor to the acclaimed RobotReviewer, designed to automate the assessment of Clinical Trials (RCTs). This version completely rebuilds the infrastructure for the modern era: it eliminates the need for Java, Docker, and external databases, running instead as a pure Python application on Python 3.13.\n\nKey modernization improvements include:\n- **Simplified Deployment:** Runs entirely locally via Streamlit with no complex setup.\n- **Modern Stack:** Replaces legacy dependencies with PyMuPDF and Pydantic for faster, more reliable PDF parsing and data handling.\n- **Optimized ML Pipeline:** Utilizes a Linear SVM-only approach for Risk of Bias assessment and RCT classification, ensuring reproducibility and stability across all platforms without the overhead of TensorFlow.\n\nThis tool preserves the predictive power of the original while making the technology accessible, stable, and ready for modern research environments.",
+  "description": "RCT-Reviewer is a modernized, standalone successor to the acclaimed RobotReviewer, designed to automate the assessment of Clinical Trials (RCTs). It leverages advanced machine learning techniques, including Support Verctor Machines (SVMs), to provide a comprehensive evaluation of RCTs, focusing on risk of bias and other critical factors that influence the reliability of trial outcomes. The tool is built using Python and Streamlit, ensuring a user-friendly interface for researchers and clinicians. RCT-Reviewer aims to streamline the systematic review process, enabling faster and more accurate synthesis of evidence-based medicine.",
   "creators": [
     {
       "name": "Sahu, Vihaan"
@@ -34,5 +34,5 @@
       "identifier": "https://github.com/ijmarshall/robotreviewer"
     }
   ],
-  "version": "3.0"
+  "version": "3.1"
 }
