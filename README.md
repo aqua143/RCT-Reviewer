@@ -15,7 +15,6 @@
 
 **RCT-Reviewer** is a modernized, standalone version of [RobotReviewer](https://github.com/ijmarshall/robotreviewer), designed as a third-party reference tool for Risk of Bias assessment. It builds upon RobotReviewer’s original machine learning models trained on 12,808 randomized controlled trials (RCTs).
 
-
 ---
 
 ## ⚛️ Why use RCT-Reviewer?
@@ -33,6 +32,19 @@ RCT-Reviewer is designed as a **Third-Party Tiebreaker Reference** for systemati
 
 ---
 
+## ⚙️ Validation
+
+RCT-Reviewer has been independently validated against the original 2017 RobotReviewer implementation using a dedicated **four-tier validation harness**.
+
+* **Predictive validity:** On 751 human-labelled Clinical Hedges records, RCT-Reviewer achieved **91.5% accuracy**, 94.1% sensitivity, 88.1% specificity, 0.925 F1 and 0.966 ROC AUC.
+* **RobotReviewer fidelity:** The refactored RCT classification pipeline reproduces the executed original **bit-identically** — **751/751 records**, with max |Δ| = 0.0.
+* **Risk-of-Bias fidelity:** **100% agreement** with the original across 6,018 document × domain comparisons (κ = 1.0), including identical sentence scores and vectorizer outputs.
+* **SVM/CNN ablation:** The SVM-only pipeline achieves **92.5% decision agreement** with the original full SVM+CNN+publication-type ensemble; most of the difference is attributable to the legacy publication-type features.
+* **PDF robustness:** **1,000/1,000 PDFs** parsed successfully, with a median processing time of 1.66 seconds per PDF.
+
+The complete methodology, reproducibility data, statistical results and validation outputs are available in the **[RCT-Reviewer Validation repository](https://github.com/RCT-Reviewer/Validation)**.
+
+---
 
 ##  Architecture & Models
 
@@ -127,7 +139,7 @@ PROJECT ARCHITECTURE
 | **Data Models** | MultiDict | **Pydantic** |
 | **Deployment** | Docker Compose | **Local Streamlit Run** |
 | **ML Core** | SVM / CNN | **Same Weights** (SVM prioritized) |
-| **Expected Accuracy Difference After CNN Removal** | Baseline reference | Estimated negligible reduction (~0–2%) |
+| **Validated SVM-only vs Full Ensemble** | Full SVM+CNN+publication-type ensemble | 92.5% decision agreement |
 | **Core Purpose** | Automated Risk of Bias assessment for RCTs | Modernized standalone implementation for automated Risk of Bias assessment |
 | **Underlying ML Research** | Original ML models trained on 12,808 RCT PDFs | Preserves the same trained ML models and weights |
 | **Risk of Bias Accuracy** | ~71.0% agreement accuracy vs expert consensus | Same expected predictive accuracy because the same SVM weights are used |
@@ -138,7 +150,9 @@ PROJECT ARCHITECTURE
 
 
 ### Note on SVM vs CNN
-This project uses a **Linear SVM-only pipeline** instead of the original SVM + CNN ensemble. CNN models were removed because they depend on TensorFlow/Keras `.h5` files which break on Python 3.11–3.12. The SVM model already contains the full predictive signal with negligible accuracy loss (~0–2%), is faster, and ensures reproducibility across all systems.
+
+RCT-Reviewer uses a **Linear SVM-only pipeline** because the original CNN depends on obsolete TensorFlow/Keras infrastructure. Validation shows **92.5% agreement** with the original SVM+CNN+publication-type ensemble, with the majority of the difference attributable to the legacy publication-type features. The SVM-only pipeline preserves the original classifier's scores exactly while providing a modern, deterministic and reproducible implementation.
+
 
 ---
 
@@ -248,6 +262,13 @@ python -m streamlit run rct_reviewer/app2.py
 ```
 *Note: This requires an active internet connection to fetch models from `Aurumz/RCT-Reviewer` on Hugging Face.*
 </details>
+
+
+---
+
+###  Reproduce the Validation
+
+For independent verification of predictive validity, model fidelity, SVM/CNN ablation and PDF parsing robustness, see the **[RCT-Reviewer Validation repository](https://github.com/RCT-Reviewer/Validation)**.
 
 
 ---
